@@ -10,6 +10,9 @@ typedef struct bmp_img {
     // pointer to beginning of image data
     void * buf;
 
+    // either GL_RGB or GL_RGBA
+    uint32_t img_fmt;
+
     uint32_t width;
     uint32_t height;
 } bmp_img;

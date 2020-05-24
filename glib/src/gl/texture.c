@@ -25,10 +25,10 @@ int texture_init(texture_t *t, const char * img_file) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0,
-            GL_RGBA, GL_UNSIGNED_BYTE, img.buf);
+            img.img_fmt, GL_UNSIGNED_BYTE, img.buf);
 
     bmp_close(&img);
 

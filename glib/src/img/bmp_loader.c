@@ -9,6 +9,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include <img/bmp_loader.h>
 
 
@@ -75,23 +79,18 @@ int bmp_read(bmp_img * bmp, const char * img_file) {
     //printf("%u\n%u\n%u header size\n%u x %u\n%u bpp\n", h.size, h.buf_offset, h.header_size,
     //        h.width, h.height, h.bits_per_pixel);
 
-    if (h.compression_method != BL_BITFIELDS) {
+    if (h.compression_method != BL_RGB &&
+            h.compression_method != BL_BITFIELDS) {
         fprintf(stderr, "Unsupported compression method %u for file %s\n",
                 h.compression_method, img_file);
         close(fd);
         return -1;
     }
 
-    if (h.bits_per_pixel != 32) {
-        fprintf(stderr, "Must have 32 bits per pixel, have %u for image file "
-                "%s\n", h.bits_per_pixel, img_file);
-        close(fd);
-        return -1;
-    }
-
     uint64_t img_data_size = h.size;
 
-    if (img_data_size != h.buf_offset + BYTES_PER_PIXEL * h.width * h.height) {
+    if (img_data_size != h.buf_offset +
+            (h.bits_per_pixel / 8) * h.width * h.height) {
         fprintf(stderr, "Expected image data size %llu = %u * %u (w * h) for "
                 "image file %s\n", img_data_size, h.width, h.height, img_file);
         close(fd);
@@ -116,6 +115,13 @@ int bmp_read(bmp_img * bmp, const char * img_file) {
     bmp->buf = ((char*) img_mem) + h.buf_offset;
     bmp->width = h.width;
     bmp->height = h.height;
+
+    if (h.compression_method == BL_RGB) {
+        bmp->img_fmt = GL_RGB;
+    }
+    else /* == BL_BITFIELDS */ {
+        bmp->img_fmt = GL_RGBA;
+    }
 
     return 0;
 }

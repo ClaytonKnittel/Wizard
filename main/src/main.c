@@ -24,12 +24,15 @@ int main(int argc, char *argv[]) {
     float data[] = {
         0.f, 0.f, 0.f, 0.f,
         1.f, 0.f, 1.f, 0.f,
-        1.f, 1.f, 1.f, 1.f
+        1.f, 1.f, 1.f, 1.f,
+        0.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 1.f,
+        1.f, 1.f, 1.f, 1.f,
     };
 
-    gl_load_dynamic_textured(&d, data, 3);
+    gl_load_dynamic_textured(&d, data, 6);
 
-    texture_init(&t, "main/img/wab.bmp");
+    texture_init(&t, "main/img/Grass1.bmp");
 
     GLuint trans = gl_uniform_location(&prog, "trans");
 
