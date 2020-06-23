@@ -1,4 +1,5 @@
 CC=gcc
+CPPC=g++
 AR=ar
 
 BASE_DIR=$(shell pwd)
@@ -21,8 +22,10 @@ DEBUG=1
 
 ifeq ($(DEBUG), 0)
 CFLAGS=-O3 -Wall -Wno-unused-function -MMD -MP
+CPPFLAGS=-O3 -std=c++11 -Wall -Wno-unused-function -MMD -MP
 else
 CFLAGS=-O0 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG
+CPPFLAGS=-O0 -std=c++11 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG
 endif
 
 # -flto allows link-time optimization (like function inlining)

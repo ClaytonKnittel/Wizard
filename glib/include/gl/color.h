@@ -3,6 +3,10 @@
 
 #include <math/vec4.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef uint32_t color_t;
 
@@ -45,6 +49,11 @@ static vec4 color_to_vec4(color_t color) {
                     color_a(color));
     return ret;
 }
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _COLOR_H */

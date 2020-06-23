@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct bmp_img {
     void * mmap_reg;
     uint64_t mmap_len;
@@ -21,6 +25,10 @@ typedef struct bmp_img {
 int bmp_read(bmp_img * bmp, const char * img_file);
 
 void bmp_close(bmp_img * bmp);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _BMP_LOADER_H */

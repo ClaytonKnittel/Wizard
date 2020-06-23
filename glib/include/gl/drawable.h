@@ -8,6 +8,10 @@
 #include <gl/shader.h>
 #include <gl/color.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct drawable {
     GLuint vao, vbo;
     uint64_t size;
@@ -54,7 +58,7 @@ int gl_load_static_monochrome_drawable(drawable *d, uint32_t *data,
  *
  * where (tx, ty) are the texture coordinates of the vertex
  */
-int gl_load_dynamic_textured(drawable *d, float *data,
+int gl_load_dynamic_textured(drawable *d, const float *data,
         size_t n_vertices);
 
 
@@ -75,6 +79,10 @@ static void gl_draw_instanced(drawable *d, GLsizei primcount) {
     glDrawArraysInstanced(GL_TRIANGLES, 0, d->size, primcount);
     glBindVertexArray(0);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _DRAWABLE_H */

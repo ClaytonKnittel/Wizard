@@ -3,6 +3,10 @@
 
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef union vec3 {
     float __m[3];
     struct {
@@ -29,5 +33,9 @@ static float vec3_mag2(vec3 *a) {
 static float vec3_mag(vec3 *a) {
     return sqrt(vec3_mag2(a));
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _M_VEC3_H */

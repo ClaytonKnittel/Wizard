@@ -8,6 +8,11 @@
 #include <gl/color.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 // maximum number of characters that can be drawn in 1 draw call
 // (have to make multiple if need to make more
 #define FONT_MAX_STR_LEN 32
@@ -95,6 +100,10 @@ void font_render(font_t *f, const char * text, float x_pos, float y_pos,
 void font_render_mono_num(font_t *f, const char * text, float x_pos, float y_pos,
         float width, float line_height);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _GL_FONT_H */

@@ -7,6 +7,10 @@
 #include <GLFW/glfw3.h>
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef struct texture {
     GLuint tex;
@@ -25,6 +29,10 @@ void texture_destroy(texture_t *t);
  */
 void texture_use(texture_t *t);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _TEXTURE_H */

@@ -3,6 +3,10 @@
 
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef union mat2 {
     float __m[4];
     struct {
@@ -48,5 +52,9 @@ static void mat2_vecmul(vec2 *res, mat2 * restrict a, vec2 *b) {
 static float mat2_det(mat2 *m) {
     return m->m00 * m->m11 - m->m01 * m->m10;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _M_MAT2_H */

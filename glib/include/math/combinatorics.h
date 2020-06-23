@@ -6,6 +6,9 @@
 
 #include <math/random.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void permute_8(uint8_t *list, size_t size);
 void permute_16(uint16_t *list, size_t size);
@@ -37,5 +40,8 @@ static void permute(void *list, size_t size, size_t memb_size) {
     }
 }
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _COMBINATORICS_H */

@@ -23,6 +23,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef int64_t heap_key_t;
 
 
@@ -129,5 +135,9 @@ void print_heap(heap_t *h);
  */
 void heap_validate(heap_t *h);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MIN_HEAP_H */

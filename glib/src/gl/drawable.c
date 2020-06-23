@@ -66,7 +66,7 @@ int gl_load_static_monochrome_drawable(drawable *d, uint32_t *data,
     return 0;
 }
 
-int gl_load_dynamic_textured(drawable *d, float *data,
+int gl_load_dynamic_textured(drawable *d, const float *data,
         size_t n_vertices) {
 
     // drawing triangles

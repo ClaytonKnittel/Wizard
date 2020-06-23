@@ -7,6 +7,14 @@
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+
+#define restrict
+
+extern "C" {
+#endif
+
+
 typedef struct program {
     GLuint self;
 } program;
@@ -28,5 +36,9 @@ static GLuint gl_uniform_location(program * p, const char * name) {
 
 void gl_unload_program(program * p);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SHADER_H */

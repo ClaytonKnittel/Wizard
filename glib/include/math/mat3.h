@@ -5,6 +5,10 @@
 
 #include <math/vec3.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef union mat3 {
     float __m[9];
     struct {
@@ -79,5 +83,10 @@ static float mat3_det(mat3 *m) {
            m->m01 * (m->m12 * m->m20 - m->m10 * m->m22) +
            m->m02 * (m->m10 * m->m21 - m->m11 * m->m20);
 }
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _M_MAT3_H */

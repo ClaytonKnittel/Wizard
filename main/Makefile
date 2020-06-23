@@ -3,8 +3,8 @@ include ../common.mk
 SDIR=src
 ODIR=.obj
 
-SRC=$(shell find $(SDIR) -type f -name '*.c')
-OBJ=$(patsubst $(SDIR)/%.c,$(ODIR)/%.o,$(SRC))
+SRC=$(shell find $(SDIR) -type f -name '*.cpp')
+OBJ=$(patsubst $(SDIR)/%.cpp,$(ODIR)/%.o,$(SRC))
 DEP=$(wildcard $(SDIR)/*.h)
 
 DIRS=$(shell find $(SDIR) -type d)
@@ -13,16 +13,16 @@ OBJDIRS=$(patsubst $(SDIR)/%,$(ODIR)/%,$(DIRS))
 $(shell mkdir -p $(ODIR))
 $(shell mkdir -p $(OBJDIRS))
 
-DEPFILES=$(SRC:$(SDIR)/%.c=$(ODIR)/%.d)
+DEPFILES=$(SRC:$(SDIR)/%.cpp=$(ODIR)/%.d)
 
 .PHONY: all
 all: $(BDIR)/game
 
 $(BDIR)/game: $(OBJ) $(LDIR)/libglib.a
-	$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS) -lglib
+	$(CPPC) $(CPPFLAGS) $(OBJ) -o $@ $(LDFLAGS) -lglib
 
-$(ODIR)/%.o: $(SDIR)/%.c
-	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
+$(ODIR)/%.o: $(SDIR)/%.cpp
+	$(CPPC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
 
 -include $(wildcard $(DEPFILES))
 

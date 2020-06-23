@@ -7,6 +7,10 @@
 
 #include <gl/color.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef union wh {
     // width and height of the window
@@ -70,5 +74,9 @@ static int gl_should_exit(gl_context *c) {
     return glfwGetKey(c->window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
         glfwWindowShouldClose(c->window);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MGL_H */
