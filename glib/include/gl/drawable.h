@@ -8,6 +8,8 @@
 #include <gl/shader.h>
 #include <gl/color.h>
 
+#include <util.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,6 +64,10 @@ int gl_load_dynamic_textured(drawable *d, const float *data,
         size_t n_vertices);
 
 
+int gl_update_dynamic_textured(drawable *d, const float *data,
+        size_t n_vertices);
+
+
 static void gl_unload_static_monochrome_drawable(drawable *d) {
     glDeleteVertexArrays(1, &d->vao);
     glDeleteBuffers(1, &d->vbo);
@@ -71,6 +77,12 @@ static void gl_unload_static_monochrome_drawable(drawable *d) {
 static void gl_draw(drawable *d) {
     glBindVertexArray(d->vao);
     glDrawArrays(GL_TRIANGLES, 0, d->size);
+    glBindVertexArray(0);
+}
+
+static void gl_draw_sub(drawable *d, size_t size) {
+    glBindVertexArray(d->vao);
+    glDrawArrays(GL_TRIANGLES, 0, size);
     glBindVertexArray(0);
 }
 

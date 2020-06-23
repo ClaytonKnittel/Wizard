@@ -1,22 +1,27 @@
 #version 330 core
 
-// transformation matrix to be applied to entire grid. When it's the identity,
-// the board is drawn to exactly fit the unit square
-uniform mat3 trans;
+// transforms the model to its proper position on the screen
+uniform mat3 model;
+
+// transformation matrix to be applied to each individual tile to move it into
+// its proper relative location
+//uniform mat3 constructor;
 
 
-layout (location = 0) in vec2 position;
+layout (location = 0) in vec3 position;
 
-layout (location = 1) in vec2 tex_coords;
+layout (location = 1) in int tex_idx;
+
+layout (location = 2) in vec2 tex_coords;
 
 out vec2 frag_tex_coords;
 
 
 void main() {
 
-    vec3 pos = trans * vec3(position, 1.f);
+    vec3 pos = model * /*constructor */ vec3(position.xy, 1.f);
     gl_Position.xyw = pos;
-    gl_Position.z = 0.f;
+    gl_Position.z = position.z;
 
     frag_tex_coords = tex_coords;
 }

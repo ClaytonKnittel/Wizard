@@ -7,19 +7,18 @@
 #include <gl/shader.h>
 #include <gl/texture.h>
 
+#include <entity.h>
+#include <tile.h>
+#include <render_buffer.h>
 
-struct Tile {
-    int id;
-    int x, y;
-};
-
-
-class Board {
+class Board : public Entity {
 private:
 
+    RenderBuffer rbuf;
+
     program prog;
-    drawable prot;
-    texture_t tex;
+    //drawable prot;
+    texture_t * texs;
 
     std::vector<Tile> tiles;
 
@@ -30,7 +29,7 @@ public:
     ~Board();
 
 
-    void render();
+    virtual void render();
 };
 
 

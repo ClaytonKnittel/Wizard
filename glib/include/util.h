@@ -1,3 +1,5 @@
+#ifndef _UTIL_H
+#define _UTIL_H
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -56,3 +58,5 @@ static GLenum glCheckError_(const char *file, int line)
     return errorCode;
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
+
+#endif /* _UTIL_H */

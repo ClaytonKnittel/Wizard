@@ -58,7 +58,7 @@ static void gl_register_key_callback(gl_context *c,
 
 
 static void gl_clear(gl_context *c) {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     width_height wh = c->wh;
     glViewport(0, 0, wh.w, wh.h);
 }
