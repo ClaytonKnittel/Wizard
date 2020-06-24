@@ -29,6 +29,8 @@ void texture_destroy(texture_t *t);
  */
 void texture_use(texture_t *t);
 
+void texture_use_idx(texture_t *t, int idx);
+
 
 #ifdef __cplusplus
 }

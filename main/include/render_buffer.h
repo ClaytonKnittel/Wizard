@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include <gl/drawable.h>
@@ -12,13 +13,18 @@ struct Vertex {
     // testing
     float x, y, z;
 
-    // texture index of texture to be applied to this vertex (all 3 vertices
-    // must have the same value for this)
-    int texture_idx;
-
     // texture coordinates
     float tx, ty;
 };
+
+
+struct Triangle {
+    Vertex vertices[3];
+    texture * tex;
+};
+
+// forward declaration
+struct __int_vertex;
 
 
 class RenderBuffer {
@@ -29,7 +35,12 @@ private:
 
     size_t capacity;
     size_t idx;
-    Vertex * pts;
+    __int_vertex * pts;
+
+    /*
+     * map from textures to indices in texture array to be sent to GPU
+     */
+    std::map<texture *, int> tex_idxs;
 
 
 public:
@@ -40,7 +51,7 @@ public:
     /*
      * pushes a vertex onto the buffer
      */
-    RenderBuffer & operator<<(const Vertex &);
+    RenderBuffer & operator<<(const Triangle &);
 
     /*
      * flushes all contents of the render buffer

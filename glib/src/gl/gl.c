@@ -97,3 +97,11 @@ void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
     c->key_callback(c, key, action, scancode, mods);
 }
 
+
+int gl_num_texture_units() {
+    int texture_units;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
+    return texture_units;
+}
+
+

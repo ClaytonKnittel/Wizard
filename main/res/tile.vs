@@ -10,9 +10,11 @@ uniform mat3 model;
 
 layout (location = 0) in vec3 position;
 
-layout (location = 1) in int tex_idx;
+layout (location = 1) in int in_tex_idx;
 
 layout (location = 2) in vec2 tex_coords;
+
+out float tex_idx;
 
 out vec2 frag_tex_coords;
 
@@ -24,5 +26,7 @@ void main() {
     gl_Position.z = position.z;
 
     frag_tex_coords = tex_coords;
+
+    tex_idx = in_tex_idx;
 }
 

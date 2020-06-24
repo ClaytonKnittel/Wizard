@@ -75,6 +75,11 @@ static int gl_should_exit(gl_context *c) {
         glfwWindowShouldClose(c->window);
 }
 
+/*
+ * gives number of texture units available to fragment shader on this hardware
+ */
+int gl_num_texture_units();
+
 #ifdef __cplusplus
 }
 #endif

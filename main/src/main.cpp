@@ -9,6 +9,10 @@
 #define WIDTH 1024
 #define HEIGHT 780
 
+extern const float aspect_ratio = ((float) HEIGHT) / WIDTH;
+extern const float inv_aspect_ratio = ((float) WIDTH) / HEIGHT;
+
+
 int main(int argc, char *argv[]) {
     gl_context c;
 
