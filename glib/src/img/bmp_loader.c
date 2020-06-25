@@ -117,7 +117,7 @@ int bmp_read(bmp_img * bmp, const char * img_file) {
     bmp->height = h.height;
 
     if (h.compression_method == BL_RGB) {
-        bmp->img_fmt = GL_RGB;
+        bmp->img_fmt = GL_BGR;
     }
     else /* == BL_BITFIELDS */ {
         bmp->img_fmt = GL_BGRA;

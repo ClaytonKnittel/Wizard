@@ -23,16 +23,19 @@ extern const float aspect_ratio;
 extern const float inv_aspect_ratio;
 
 
-#define N_TEXS 1
+#define N_TEXS 2
 
-Board::Board() : Entity(-.8f, -.3f, 2.5f), rbuf(600) {
+Board::Board() : Entity(-.8f, -.3f, .15f), rbuf(600) {
+
+    make_iso();
 
 #define W 10
 #define H 10
 
     for (int i = 0; i < W * H; i++) {
         tiles.push_back({
-                .id = (i / W) /*rand()*/ % N_TEXS,
+                .id = (i / W + i % W) % N_TEXS,
+                //.id = rand() % N_TEXS,
                 .x  = i % W,
                 .y  = i / W,
                 .z  = 0
@@ -47,7 +50,8 @@ Board::Board() : Entity(-.8f, -.3f, 2.5f), rbuf(600) {
     }
 
     texs = new texture[N_TEXS];
-    texture_init(&texs[0], "main/img/square.bmp");
+    texture_init(&texs[0], "main/img/gsquare2.bmp");
+    texture_init(&texs[1], "main/img/gsquare3.bmp");
 }
 
 
@@ -62,16 +66,14 @@ Board::~Board() {
 
 #define PIX_WID 17
 
-#define TILE_TOP_AR .5f
-
 void Board::render() {
     gl_use_program(&prog);
 
     // call superclass render callback
     upload_pos(&prog);
 
-    float tile_size = .1f;
-    float ytile_size = tile_size * inv_aspect_ratio * TILE_TOP_AR;
+    float tile_size = 1.f;
+    float ytile_size = tile_size;
 
     for (int i = 0; i < 16; i++) {
         int loc = gl_uniform_location(&prog, "texs") + i;
@@ -82,71 +84,63 @@ void Board::render() {
     for (Tile t : tiles) {
         int id  = t.id;
         float x = t.x * tile_size;
-        float _y = t.y;
-        float y = _y * ytile_size;
-        float yx = _y * tile_size;
+        float y = t.y * ytile_size;
+        float z = 1 - tanh(y);
 
-        Vertex t1 = {
-            .x = x + yx / 2.f + tile_size / 2.f,
-            .y = y / 2.f,
-            .z = y,
-            .tx = 0.f,
-            .ty = 0.f
-        },
-             t2 = {
-            .x = x + yx / 2.f + tile_size,
-            .y = y / 2.f + ytile_size / 2.f,
-            .z = y,
-            .tx = 1.f,
-            .ty = 0.f
-        },
-             t3 = {
-            .x = x + yx / 2.f + tile_size / 2.f,
-            .y = y / 2.f + ytile_size,
-            .z = y,
-            .tx = 1.f,
-            .ty = 1.f
-        },
-             t4 = {
-            .x = x + yx / 2.f + tile_size / 2.f,
-            .y = y / 2.f,
-            .z = y,
-            .tx = 0.f,
-            .ty = 0.f
-        },
-             t5 = {
-            .x = x + yx / 2.f,
-            .y = y / 2.f + ytile_size / 2.f,
-            .z = y,
-            .tx = 0.f,
-            .ty = 1.f
-        },
-             t6 = {
-            .x = x + yx / 2.f + tile_size / 2.f,
-            .y = y / 2.f + ytile_size,
-            .z = y,
-            .tx = 1.f,
-            .ty = 1.f
-        };
-
-        Triangle ta = {
+        Triangle t1 = {
             .vertices = {
-                t1,
-                t2,
-                t3
+                {
+                    .x = x,
+                    .y = y,
+                    .z = z,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y + ytile_size,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                }
             },
             .tex = &texs[id]
         };
-        Triangle tb = {
+        Triangle t2 = {
             .vertices = {
-                t4,
-                t5,
-                t6
+                {
+                    .x = x,
+                    .y = y,
+                    .z = z,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y + ytile_size,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                },
+                {
+                    .x = x,
+                    .y = y + ytile_size,
+                    .z = z,
+                    .tx = 0.f,
+                    .ty = 1.f
+                }
             },
             .tex = &texs[id]
         };
 
-        rbuf << ta << tb;
+        rbuf << t1 << t2;
     }
 
     rbuf.flush();
