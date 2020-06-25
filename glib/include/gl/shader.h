@@ -25,14 +25,7 @@ int gl_load_program(program * p, const char * restrict vert_path,
 
 void gl_use_program(program * p);
 
-static GLuint gl_uniform_location(program * p, const char * name) {
-    GLuint uniform = glGetUniformLocation(p->self, name);
-
-    if (uniform == -1) {
-        fprintf(stderr, "\"%s\" not a uniform variable\n", name);
-    }
-    return uniform;
-}
+GLuint gl_uniform_location(program * p, const char * name);
 
 void gl_unload_program(program * p);
 

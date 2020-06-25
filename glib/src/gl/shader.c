@@ -99,6 +99,15 @@ void gl_use_program(program * p) {
     glUseProgram(p->self);
 }
 
+GLuint gl_uniform_location(program * p, const char * name) {
+    GLuint uniform = glGetUniformLocation(p->self, name);
+
+    if (uniform == -1) {
+        fprintf(stderr, "\"%s\" not a uniform variable\n", name);
+    }
+    return uniform;
+}
+
 
 void gl_unload_program(program * p) {
     glDeleteProgram(p->self);

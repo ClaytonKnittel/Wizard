@@ -89,6 +89,13 @@ void gl_exit(gl_context *context) {
 }
 
 
+void gl_set_bg_color(color_t color) {
+    glClearColor(color_r(color), color_g(color),
+                 color_b(color), color_a(color));
+}
+
+
+
 
 void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
         int mods) {
@@ -97,6 +104,33 @@ void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
     c->key_callback(c, key, action, scancode, mods);
 }
 
+
+void gl_register_key_callback(gl_context *c,
+        void (*callback)(gl_context*, int key, int action, int scancode,
+            int mods)) {
+
+    c->key_callback = callback;
+    glfwSetKeyCallback(c->window, &_gl_key_callback_proxy);
+}
+
+
+void gl_clear(gl_context *c) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    width_height wh = c->wh;
+    glViewport(0, 0, wh.w, wh.h);
+}
+
+
+void gl_render(gl_context *c) {
+    // Swap buffers
+    glfwSwapBuffers(c->window);
+}
+
+
+int gl_should_exit(gl_context *c) {
+    return glfwGetKey(c->window, GLFW_KEY_ESCAPE) == GLFW_PRESS ||
+        glfwWindowShouldClose(c->window);
+}
 
 int gl_num_texture_units() {
     int texture_units;

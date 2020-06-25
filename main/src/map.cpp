@@ -25,9 +25,7 @@ extern const float inv_aspect_ratio;
 
 #define N_TEXS 2
 
-Board::Board() : Entity(-.8f, -.3f, .15f), rbuf(600) {
-
-    make_iso();
+Board::Board() : Entity(-.8f, -.3f, .08f), rbuf(600) {
 
 #define W 10
 #define H 10
@@ -38,19 +36,23 @@ Board::Board() : Entity(-.8f, -.3f, .15f), rbuf(600) {
                 //.id = rand() % N_TEXS,
                 .x  = i % W,
                 .y  = i / W,
-                .z  = 0
+                .z  = (i / W) % 2
                 });
     }
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
+    gl_use_program(&prog);
+
+    // bind each texture in fragment shader to the proper texture unit
     for (int i = 0; i < 16; i++) {
         int loc = gl_uniform_location(&prog, "texs") + i;
         glUniform1i(loc, i);
     }
 
     texs = new texture[N_TEXS];
-    texture_init(&texs[0], "main/img/gsquare2.bmp");
+    texture_init(&texs[0], "main/img/square.bmp");
+    //texture_init(&texs[0], "main/img/gsquare2.bmp");
     texture_init(&texs[1], "main/img/gsquare3.bmp");
 }
 
@@ -64,8 +66,6 @@ Board::~Board() {
 }
 
 
-#define PIX_WID 17
-
 void Board::render() {
     gl_use_program(&prog);
 
@@ -75,17 +75,12 @@ void Board::render() {
     float tile_size = 1.f;
     float ytile_size = tile_size;
 
-    for (int i = 0; i < 16; i++) {
-        int loc = gl_uniform_location(&prog, "texs") + i;
-        glUniform1i(loc, i);
-    }
-
 
     for (Tile t : tiles) {
         int id  = t.id;
         float x = t.x * tile_size;
         float y = t.y * ytile_size;
-        float z = 1 - tanh(y);
+        float z = t.z;
 
         Triangle t1 = {
             .vertices = {
@@ -139,8 +134,112 @@ void Board::render() {
             },
             .tex = &texs[id]
         };
+        Triangle t3 = {
+            .vertices = {
+                {
+                    .x = x,
+                    .y = y,
+                    .z = z - 1.f,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z - 1.f,
+                    .tx = 1.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                }
+            },
+            .tex = &texs[id]
+        };
+        Triangle t4 = {
+            .vertices = {
+                {
+                    .x = x,
+                    .y = y,
+                    .z = z - 1.f,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                },
+                {
+                    .x = x,
+                    .y = y,
+                    .z = z,
+                    .tx = 0.f,
+                    .ty = 1.f
+                }
+            },
+            .tex = &texs[id]
+        };
+        Triangle t5 = {
+            .vertices = {
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z - 1.f,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y + tile_size,
+                    .z = z - 1.f,
+                    .tx = 1.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y + tile_size,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                }
+            },
+            .tex = &texs[id]
+        };
+        Triangle t6 = {
+            .vertices = {
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z - 1.f,
+                    .tx = 0.f,
+                    .ty = 0.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y + tile_size,
+                    .z = z,
+                    .tx = 1.f,
+                    .ty = 1.f
+                },
+                {
+                    .x = x + tile_size,
+                    .y = y,
+                    .z = z,
+                    .tx = 0.f,
+                    .ty = 1.f
+                }
+            },
+            .tex = &texs[id]
+        };
 
-        rbuf << t1 << t2;
+        rbuf << t1 << t2 << t3 << t4 << t5 << t6;
     }
 
     rbuf.flush();
