@@ -7,10 +7,11 @@ class Entity {
 private:
 
     float x, y;
+    float scale;
 
 public:
 
-    Entity(float x, float y);
+    Entity(float x, float y, float scale);
 
 
     void upload_pos(program * prog);

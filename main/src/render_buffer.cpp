@@ -1,6 +1,7 @@
 
 #include <cstdio>
 
+#include <gl/gl.h>
 #include <gl/texture.h>
 
 #include <render_buffer.h>
@@ -21,10 +22,12 @@ struct __int_vertex {
 };
 
 
-RenderBuffer::RenderBuffer(program * p, size_t capacity) : prog(p), idx(0) {
+RenderBuffer::RenderBuffer(size_t capacity) : idx(0) {
 
     // drawing triangles
-    this->capacity = capacity - (capacity % 3);
+    this->capacity = capacity + (2 - ((capacity + 2) % 3));
+
+    this->n_texture_units = gl_num_texture_units();
 
     gl_load_dynamic_textured(&d, NULL, this->capacity);
 
@@ -53,6 +56,15 @@ RenderBuffer & RenderBuffer::operator<<(const Triangle & t) {
 
     if (it == tex_idxs.end()) {
         tex_idx = tex_idxs.size();
+
+        if (tex_idx == n_texture_units) {
+            // if the number of available texture units has already been
+            // reached, we have to flush the buffer before adding this unit
+            // TODO: make array of buffers so we dont get thrashing
+            flush();
+            tex_idx = 0;
+        }
+
         tex_idxs[t.tex] = tex_idx;
     }
     else {
@@ -89,16 +101,12 @@ void RenderBuffer::flush() {
                 pts[i].tx, pts[i].ty);
     }
 
-    for (int i = 0; i < 16; i++) {
-        int loc = gl_uniform_location(prog, "texs") + i;
-        glUniform1i(loc, i);
-    }
-
     for (auto it = tex_idxs.begin(); it != tex_idxs.end(); it++) {
         texture_use_idx(it->first, it->second);
     }
 
-    //gl_use_program(prog);
+    tex_idxs.clear();
+
     gl_draw_sub(&d, idx);
 
     idx = 0;

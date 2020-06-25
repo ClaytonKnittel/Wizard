@@ -120,7 +120,7 @@ int bmp_read(bmp_img * bmp, const char * img_file) {
         bmp->img_fmt = GL_RGB;
     }
     else /* == BL_BITFIELDS */ {
-        bmp->img_fmt = GL_RGBA;
+        bmp->img_fmt = GL_BGRA;
     }
 
     return 0;

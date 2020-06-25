@@ -30,12 +30,14 @@ struct __int_vertex;
 class RenderBuffer {
 private:
 
-    program * prog;
     drawable d;
 
     size_t capacity;
     size_t idx;
     __int_vertex * pts;
+
+    // number of texture units available on this hardware
+    int n_texture_units;
 
     /*
      * map from textures to indices in texture array to be sent to GPU
@@ -45,7 +47,7 @@ private:
 
 public:
 
-    RenderBuffer(program * p, size_t capacity);
+    RenderBuffer(size_t capacity);
     ~RenderBuffer();
 
     /*

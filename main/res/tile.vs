@@ -14,7 +14,7 @@ layout (location = 1) in int in_tex_idx;
 
 layout (location = 2) in vec2 tex_coords;
 
-out float tex_idx;
+flat out int tex_idx;
 
 out vec2 frag_tex_coords;
 
