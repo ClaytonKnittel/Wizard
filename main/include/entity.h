@@ -2,6 +2,8 @@
 
 #include <gl/shader.h>
 
+#include <screen.h>
+
 
 class Entity {
 private:
@@ -20,6 +22,6 @@ public:
      * draws entity to the screen, must call upload_pos to set the position of
      * the entity (shader must have a model uniform mat3 variable)
      */
-    virtual void render() = 0;
+    virtual void render(const Screen & cam) = 0;
 };
 

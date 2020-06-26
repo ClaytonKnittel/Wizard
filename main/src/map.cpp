@@ -36,7 +36,7 @@ Board::Board() : Entity(-.8f, -.3f, .08f), rbuf(600) {
                 //.id = rand() % N_TEXS,
                 .x  = i % W,
                 .y  = i / W,
-                .z  = (i / W) % 2
+                .z  = (i / W)
                 });
     }
 
@@ -53,7 +53,7 @@ Board::Board() : Entity(-.8f, -.3f, .08f), rbuf(600) {
     texs = new texture[N_TEXS];
     texture_init(&texs[0], "main/img/square.bmp");
     //texture_init(&texs[0], "main/img/gsquare2.bmp");
-    texture_init(&texs[1], "main/img/gsquare3.bmp");
+    texture_init(&texs[1], "main/img/square2.bmp");
 }
 
 
@@ -66,8 +66,11 @@ Board::~Board() {
 }
 
 
-void Board::render() {
+void Board::render(const Screen & screen) {
     gl_use_program(&prog);
+
+    // upload camera and view transformation matrices
+    screen.apply(&prog);
 
     // call superclass render callback
     upload_pos(&prog);

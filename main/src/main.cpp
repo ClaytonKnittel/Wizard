@@ -3,6 +3,7 @@
 
 #include <gl/gl.h>
 
+#include <camera.h>
 #include <map.h>
 
 
@@ -18,6 +19,8 @@ int main(int argc, char *argv[]) {
 
     gl_init(&c, WIDTH, HEIGHT);
 
+    Screen screen(WIDTH, HEIGHT);
+
     gl_set_bg_color(gen_color(255, 255, 255, 255));
 
     Board b;
@@ -25,7 +28,9 @@ int main(int argc, char *argv[]) {
     while (!gl_should_exit(&c)) {
         gl_clear(&c);
 
-        b.render();
+        b.render(screen);
+        //cam.move(.02f, -.01f);
+        screen.get_cam().rotate(.01f);
 
         gl_render(&c);
         glfwPollEvents();

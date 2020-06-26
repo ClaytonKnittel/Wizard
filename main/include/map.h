@@ -10,6 +10,7 @@
 #include <entity.h>
 #include <tile.h>
 #include <render_buffer.h>
+#include <screen.h>
 
 class Board : public Entity {
 private:
@@ -29,7 +30,7 @@ public:
     ~Board();
 
 
-    virtual void render();
+    virtual void render(const Screen & cam);
 };
 
 
