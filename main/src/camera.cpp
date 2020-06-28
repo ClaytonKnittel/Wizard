@@ -30,10 +30,10 @@ void Camera::apply(program * p) const {
     float s = sin(angle);
 
     float mat[] = {
-         c,             s,             0.f, 0.f,
-        -s,             c,             0.f, 0.f,
-         0.f,           0.f,           1.f, 0.f,
-         x * c - y * s, x * s + y * c, 0.f, 1.f
+        c,             -s,             0.f, 0.f,
+        s,              c,             0.f, 0.f,
+        0.f,            0.f,           1.f, 0.f,
+        x * c - y * s,  x * s + y * c, 0.f, 1.f
     };
 
     glUniformMatrix4fv(cam, 1, 0, mat);

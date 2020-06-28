@@ -16,13 +16,6 @@ void Entity::upload_pos(program * prog) {
         x,     y,     0.f,   1.f
     };
 
-    /*
-    float mat[] = {
-        scale, -yscale / 2.f, -yscale / 2.f, 0.f,
-        scale,  yscale / 2.f,  yscale / 2.f, 0.f,
-        0.f,    yscale,        0.f,          0.f,
-        x,      y,             0.f,          1.f
-    };*/
     glUniformMatrix4fv(model, 1, 0, mat);
 }
 

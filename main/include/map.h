@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include <gl/drawable.h>
@@ -20,6 +21,8 @@ private:
     program prog;
     //drawable prot;
     texture_t * texs;
+    // name of each of the textures
+    std::string * tex_files;
 
     std::vector<Tile> tiles;
 
@@ -29,6 +32,15 @@ public:
 
     ~Board();
 
+    /*
+     * save board configuration to a file
+     */
+    int save(const char * loc);
+
+    /*
+     * load board configuration from file
+     */
+    int load(const char * loc);
 
     virtual void render(const Screen & cam);
 };

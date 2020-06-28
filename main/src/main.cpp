@@ -10,9 +10,6 @@
 #define WIDTH 1024
 #define HEIGHT 780
 
-extern const float aspect_ratio = ((float) HEIGHT) / WIDTH;
-extern const float inv_aspect_ratio = ((float) WIDTH) / HEIGHT;
-
 
 int main(int argc, char *argv[]) {
     gl_context c;
@@ -25,12 +22,15 @@ int main(int argc, char *argv[]) {
 
     Board b;
 
+    b.save("test_board.txt");
+    b.load("test_board.txt");
+
     while (!gl_should_exit(&c)) {
         gl_clear(&c);
 
         b.render(screen);
         //cam.move(.02f, -.01f);
-        screen.get_cam().rotate(.01f);
+        screen.get_cam().rotate(-.01f);
 
         gl_render(&c);
         glfwPollEvents();
