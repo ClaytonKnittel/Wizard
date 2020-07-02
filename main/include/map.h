@@ -26,24 +26,26 @@ private:
 
     std::vector<Tile> tiles;
 
+    void make_generic();
+
     // called to delete current textures
     void unload_texs();
 
 public:
 
-    Board();
+    Board(const std::string & file);
 
     ~Board();
 
     /*
      * save board configuration to a file
      */
-    int save(const char * loc);
+    int save(const std::string & loc);
 
     /*
      * load board configuration from file
      */
-    int load(const char * loc);
+    int load(const std::string & loc);
 
     virtual void render(const Screen & cam);
 };

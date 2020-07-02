@@ -9,9 +9,8 @@
 
 
 struct __int_vertex {
-    // x and y are transformed screen coordinates, z is used only for depth
-    // testing
-    float x, y, z;
+    // x and y are transformed screen coordinates
+    float x, y;
 
     // texture index of texture to be applied to this vertex (all 3 vertices
     // must have the same value for this)
@@ -73,13 +72,13 @@ RenderBuffer & RenderBuffer::operator<<(const Triangle & t) {
 
     __int_vertex vs[3];
 
-    __builtin_memcpy(&vs[0].x,  &t.vertices[0].x,  3 * sizeof(float));
+    __builtin_memcpy(&vs[0].x,  &t.vertices[0].x,  2 * sizeof(float));
     vs[0].texture_idx = tex_idx;
     __builtin_memcpy(&vs[0].tx, &t.vertices[0].tx, 2 * sizeof(float));
-    __builtin_memcpy(&vs[1].x,  &t.vertices[1].x,  3 * sizeof(float));
+    __builtin_memcpy(&vs[1].x,  &t.vertices[1].x,  2 * sizeof(float));
     vs[1].texture_idx = tex_idx;
     __builtin_memcpy(&vs[1].tx, &t.vertices[1].tx, 2 * sizeof(float));
-    __builtin_memcpy(&vs[2].x,  &t.vertices[2].x,  3 * sizeof(float));
+    __builtin_memcpy(&vs[2].x,  &t.vertices[2].x,  2 * sizeof(float));
     vs[2].texture_idx = tex_idx;
     __builtin_memcpy(&vs[2].tx, &t.vertices[2].tx, 2 * sizeof(float));
 
@@ -95,8 +94,8 @@ void RenderBuffer::flush() {
     gl_update_dynamic_textured(&d, (float*) pts, idx);
 
     for (int i = 0; i < 0; i++) {
-        printf("(%f, %f, %f) %d (%f, %f)\n",
-                pts[i].x, pts[i].y, pts[i].z,
+        printf("(%f, %f) %d (%f, %f)\n",
+                pts[i].x, pts[i].y,
                 pts[i].texture_idx,
                 pts[i].tx, pts[i].ty);
     }

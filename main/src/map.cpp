@@ -11,28 +11,33 @@
 #include <util.h>
 
 
-#define N_TEXS 1
+#define N_TEXS 2
 
-Board::Board() : Entity(0, 0, .08f), rbuf(8000) {
+void Board::make_generic() {
 
 #define W 5
 #define H 5
 
     texs = new texture[N_TEXS];
     tex_files = new std::string[N_TEXS];
-    texture_init(&texs[0], "main/img/test.bmp");
-    tex_files[0] = "main/img/test.bmp";
-    //texture_init(&texs[0], "main/img/gsquare2.bmp");
-    //texture_init(&texs[1], "main/img/square2.bmp");
+    texture_init(&texs[0], "main/img/gsquare1.bmp");
+    tex_files[0] = "main/img/gsquare1.bmp";
+    texture_init(&texs[1], "main/img/gsquare2.bmp");
+    tex_files[1] = "main/img/gsquare2.bmp";
 
     for (int i = 0; i < W * H; i++) {
         tiles.push_back(Tile(
                 &texs[(i / W + i % W) % N_TEXS],
                 i % W,
-                i / W,
-                -(i / W + i % W) / 2
+                i / W
                 ));
     }
+}
+
+Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
+
+    make_generic();
+    //load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
@@ -67,13 +72,13 @@ Board::~Board() {
 
 
 
-int Board::save(const char * loc) {
+int Board::save(const std::string & loc) {
     bofstream f;
 
     f.open(loc, std::ios::binary | std::fstream::trunc);
 
     if (!f.is_open()) {
-        fprintf(stderr, "Unable to open file %s for writing\n", loc);
+        fprintf(stderr, "Unable to open file %s for writing\n", loc.c_str());
         return -1;
     }
 
@@ -97,12 +102,13 @@ int Board::save(const char * loc) {
             tex_idx = it->second;
         }
 
-        dat << t.x << t.y << t.z << tex_idx;
+        dat << t.x << t.y << tex_idx;
     }
 
     uint32_t n_tiles = tiles.size();
     uint32_t n_texs = tex_idxs.size();
     f << n_tiles << n_texs;
+    // write without encoding length of strings
     f.write(texs.str());
     f.write(dat.str());
 
@@ -110,7 +116,7 @@ int Board::save(const char * loc) {
 }
 
 
-int Board::load(const char * loc) {
+int Board::load(const std::string & loc) {
     bifstream f;
 
     f.open(loc, std::ios::binary);
@@ -119,8 +125,6 @@ int Board::load(const char * loc) {
     uint32_t n_texs;
 
     f >> n_tiles >> n_texs;
-
-    printf("%u, %u\n", n_tiles, n_texs);
 
     unload_texs();
     tiles.clear();
@@ -131,7 +135,6 @@ int Board::load(const char * loc) {
     for (int i = 0; i < n_texs; i++) {
         std::string name;
         f >> name;
-        printf("tex %s\n", name.c_str());
 
         texture_init(&texs[i], name.c_str());
         tex_files[i] = std::move(name);
@@ -142,10 +145,8 @@ int Board::load(const char * loc) {
         Tile & t = tiles[i];
 
         int tex_idx;
-        f >> t.x >> t.y >> t.z >> tex_idx;
+        f >> t.x >> t.y >> tex_idx;
         t.tex = &texs[tex_idx];
-
-        printf("Tile: %d %d %d, %p\n", t.x, t.y, t.z, t.tex);
 
         t.gen_vertices();
     }

@@ -80,7 +80,7 @@ int gl_load_dynamic_textured(drawable *d, const float *data,
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    size_t stride = 5 * sizeof(float) + sizeof(int);
+    size_t stride = 4 * sizeof(float) + sizeof(int);
 
     glGenBuffers(1, &d->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
@@ -88,11 +88,11 @@ int gl_load_dynamic_textured(drawable *d, const float *data,
             GL_DYNAMIC_DRAW);
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*) 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*) 0);
     glVertexAttribIPointer(1, 1, GL_INT, stride,
-            (GLvoid*) (3 * sizeof(float)));
+            (GLvoid*) (2 * sizeof(float)));
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride,
-            (GLvoid*) (3 * sizeof(float) + sizeof(int)));
+            (GLvoid*) (2 * sizeof(float) + sizeof(int)));
 
     glBindVertexArray(0);
 
@@ -105,7 +105,7 @@ int gl_update_dynamic_textured(drawable *d, const float *data,
 
     assert(n_vertices <= d->size);
 
-    size_t stride = 5 * sizeof(float) + sizeof(int);
+    size_t stride = 4 * sizeof(float) + sizeof(int);
 
     glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, stride * n_vertices, data);

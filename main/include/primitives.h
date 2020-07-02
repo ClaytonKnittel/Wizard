@@ -3,7 +3,7 @@
 struct Vertex {
     // x and y are transformed screen coordinates, z is used only for depth
     // testing
-    float x, y, z;
+    float x, y;
 
     // texture coordinates
     float tx, ty;

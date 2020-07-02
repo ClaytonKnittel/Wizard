@@ -20,17 +20,16 @@ int main(int argc, char *argv[]) {
 
     gl_set_bg_color(gen_color(255, 255, 255, 255));
 
-    Board b;
+    Board b("test_board.txt");
 
-    b.save("test_board.txt");
-    b.load("test_board.txt");
+    //b.save("test_board.txt");
+    //b.load("test_board.txt");
 
     while (!gl_should_exit(&c)) {
         gl_clear(&c);
 
         b.render(screen);
         //cam.move(.02f, -.01f);
-        screen.get_cam().rotate(-.01f);
 
         gl_render(&c);
         glfwPollEvents();

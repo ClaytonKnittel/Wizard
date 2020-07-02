@@ -5,7 +5,7 @@
 #include <object.h>
 
 // 2 triangles per face, 5 sides (bottom never visible)
-#define TILE_N_PRIMITIVES (2 * 5)
+#define TILE_N_PRIMITIVES 2
 
 
 /*
@@ -18,7 +18,7 @@ private:
 
     // which texture will be mapped to the tile
     texture * tex;
-    int x, y, z;
+    int x, y;
 
     Triangle faces[TILE_N_PRIMITIVES];
 
@@ -27,7 +27,7 @@ private:
 public:
 
     Tile();
-    Tile(texture * tex, int x, int y, int z);
+    Tile(texture * tex, int x, int y);
     virtual ~Tile();
 
     virtual void insert_all(Renderer &);
