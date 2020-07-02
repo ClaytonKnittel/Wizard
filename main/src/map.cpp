@@ -36,8 +36,8 @@ void Board::make_generic() {
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    make_generic();
-    //load(file);
+    //make_generic();
+    load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
