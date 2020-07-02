@@ -21,7 +21,7 @@ Board::Board() : Entity(0, 0, .08f), rbuf(8000) {
     texs = new texture[N_TEXS];
     tex_files = new std::string[N_TEXS];
     texture_init(&texs[0], "main/img/test.bmp");
-    tex_files[0] = "test.bmp";
+    tex_files[0] = "main/img/test.bmp";
     //texture_init(&texs[0], "main/img/gsquare2.bmp");
     //texture_init(&texs[1], "main/img/square2.bmp");
 
@@ -46,12 +46,22 @@ Board::Board() : Entity(0, 0, .08f), rbuf(8000) {
 }
 
 
-Board::~Board() {
-    for (int i = 0; i < N_TEXS; i++) {
-        texture_destroy(&texs[i]);
+void Board::unload_texs() {
+    if (texs != nullptr && tex_files != nullptr) {
+        for (int i = 0; i < N_TEXS; i++) {
+            texture_destroy(&texs[i]);
+        }
+        delete [] texs;
+        delete [] tex_files;
+
+        texs = nullptr;
+        tex_files = nullptr;
     }
-    delete [] texs;
-    delete [] tex_files;
+}
+
+
+Board::~Board() {
+    unload_texs();
     gl_unload_program(&prog);
 }
 
@@ -79,8 +89,9 @@ int Board::save(const char * loc) {
             tex_idx = tex_idxs.size();
             tex_idxs[t.tex] = tex_idx;
 
-            size_t arr_idx = ((uint64_t) t.tex) - ((uint64_t) this->texs);
-            texs << tex_idx << tex_files[arr_idx];
+            size_t arr_idx = (((uint64_t) t.tex) - ((uint64_t) this->texs)) /
+                             sizeof(texture_t);
+            texs << tex_files[arr_idx];
         }
         else {
             tex_idx = it->second;
@@ -92,8 +103,8 @@ int Board::save(const char * loc) {
     uint32_t n_tiles = tiles.size();
     uint32_t n_texs = tex_idxs.size();
     f << n_tiles << n_texs;
-    f << texs.str();
-    f << dat.str();
+    f.write(texs.str());
+    f.write(dat.str());
 
     return 0;
 }
@@ -110,6 +121,34 @@ int Board::load(const char * loc) {
     f >> n_tiles >> n_texs;
 
     printf("%u, %u\n", n_tiles, n_texs);
+
+    unload_texs();
+    tiles.clear();
+
+    texs = new texture[n_texs];
+    tex_files = new std::string[n_texs];
+
+    for (int i = 0; i < n_texs; i++) {
+        std::string name;
+        f >> name;
+        printf("tex %s\n", name.c_str());
+
+        texture_init(&texs[i], name.c_str());
+        tex_files[i] = std::move(name);
+    }
+
+    for (int i = 0; i < n_tiles; i++) {
+        tiles.resize(i + 1);
+        Tile & t = tiles[i];
+
+        int tex_idx;
+        f >> t.x >> t.y >> t.z >> tex_idx;
+        t.tex = &texs[tex_idx];
+
+        printf("Tile: %d %d %d, %p\n", t.x, t.y, t.z, t.tex);
+
+        t.gen_vertices();
+    }
 
     return 0;
 }

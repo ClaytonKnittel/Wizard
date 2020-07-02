@@ -26,6 +26,7 @@ private:
 
 public:
 
+    Tile();
     Tile(texture * tex, int x, int y, int z);
     virtual ~Tile();
 

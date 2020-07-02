@@ -1,174 +1,120 @@
 #pragma once
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 
 
-class bifstream : public std::ifstream {
+
+
+template<typename I>
+class bstream {
+private:
+
+    I base;
+
 public:
+
+    bstream() : base() {}
+
+    void open(const std::string & loc, int flags) {
+        base.open(loc, flags);
+    }
+
+    bool is_open() {
+        return base.is_open();
+    }
+
+    std::string str() {
+        return base.str();
+    }
 
     template<typename T>
     void read(T & t) {
-        this->std::ifstream::read(reinterpret_cast<char *>(&t), sizeof(T));
-    }
-
-    template<typename T>
-    bifstream & operator>>(T & t) {
-        this->read(t);
-        return *this;
-    }
-
-    bifstream & operator>>(std::string & s) {
-        std::getline(*this, s, '\0');
-        return *this;
-    }
-
-};
-
-
-class bofstream : public std::ofstream {
-public:
-
-    template<typename T>
-    void write(const T & t) {
-        this->std::ofstream::write(reinterpret_cast<const char *>(&t),
-                sizeof(T));
-    }
-
-    template<typename T>
-    bofstream & operator<<(T & t) {
-        this->write(t);
-        return *this;
-    }
-
-    bofstream & operator<<(std::string & s) {
-        *static_cast<std::ofstream *>(this) << s << '\0';
-        return *this;
-    }
-
-};
-
-class bfstream : public std::fstream {
-public:
-
-    template<typename T>
-    void read(T & t) {
-        this->std::fstream::read(reinterpret_cast<char *>(&t), sizeof(T));
+        base.read(reinterpret_cast<char *>(&t), sizeof(T));
     }
 
     template<typename T>
     void write(const T & t) {
-        this->std::fstream::write(reinterpret_cast<const char *>(&t),
+        base.write(reinterpret_cast<const char *>(&t),
                 sizeof(T));
     }
 
+    template<>
+    void write(const std::string & s) {
+        base.write(s.c_str(), s.size());
+    }
+
+    void write(const void * mem, size_t n_bytes) {
+        base.write(mem, n_bytes);
+    }
+
     template<typename T>
-    bfstream & operator>>(T & t) {
+    bstream & operator>>(T & t) {
         this->read(t);
         return *this;
     }
 
-    bfstream & operator>>(std::string & s) {
-        std::getline(*this, s, '\0');
+    template<>
+    bstream & operator>>(std::string & s) {
+        uint32_t len;
+        *this >> len;
+        s.reserve(len);
+        std::copy_n(std::istream_iterator<char>(base),
+                len, std::back_inserter(s));
         return *this;
     }
 
     template<typename T>
-    bfstream & operator<<(T & t) {
+    bstream & operator<<(const T & t) {
         this->write(t);
         return *this;
     }
 
-    bfstream & operator<<(std::string & s) {
-        *static_cast<std::fstream *>(this) << s << '\0';
+    template<>
+    bstream & operator<<(const std::string & s) {
+        uint32_t len = s.size();
+        *this << len;
+        this->write(s);
         return *this;
     }
 
 };
 
-
-class bistringstream : public std::istringstream {
+template<typename I>
+class bistream : public bstream<I> {
 public:
-
-    template<typename T>
-    void read(T & t) {
-        this->std::istringstream::read(reinterpret_cast<char *>(&t), sizeof(T));
-    }
-
-    template<typename T>
-    bistringstream & operator>>(T & t) {
-        this->read(t);
-        return *this;
-    }
-
-    bistringstream & operator>>(std::string & s) {
-        std::getline(*this, s, '\0');
-        return *this;
-    }
-
 };
 
 
-class bostringstream : public std::ostringstream {
+template<typename I>
+class bostream : public bstream<I> {
 public:
-
-    template<typename T>
-    void write(const T & t) {
-        this->std::ostringstream::write(reinterpret_cast<const char *>(&t),
-                sizeof(T));
-    }
-
-    template<typename T>
-    bostringstream & operator<<(T & t) {
-        this->write(t);
-        return *this;
-    }
-
-    bostringstream & operator<<(std::string & s) {
-        *static_cast<std::ostringstream *>(this) << s << '\0';
-        return *this;
-    }
-
 };
 
 
-class bstringstream : public std::stringstream {
-public:
+class bifstream : public bistream<std::ifstream> {
+};
 
-    template<typename T>
-    void read(T & t) {
-        this->std::stringstream::read(reinterpret_cast<char *>(&t), sizeof(T));
-    }
 
-    template<typename T>
-    void write(const T & t) {
-        this->std::stringstream::write(reinterpret_cast<const char *>(&t),
-                sizeof(T));
-    }
+class bofstream : public bostream<std::ofstream> {
+};
 
-    template<typename T>
-    bstringstream & operator>>(T & t) {
-        this->read(t);
-        return *this;
-    }
 
-    bstringstream & operator>>(std::string & s) {
-        std::getline(*this, s, '\0');
-        return *this;
-    }
+class bfstream : public bstream<std::fstream> {
+};
 
-    template<typename T>
-    bstringstream & operator<<(T & t) {
-        this->write(t);
-        return *this;
-    }
 
-    bstringstream & operator<<(std::string & s) {
-        *static_cast<std::stringstream *>(this) << s << '\0';
-        return *this;
-    }
+class bistringstream : public bistream<std::istringstream> {
+};
 
+
+class bostringstream : public bostream<std::ostringstream> {
+};
+
+
+class bstringstream : public bstream<std::stringstream> {
 };
 
 

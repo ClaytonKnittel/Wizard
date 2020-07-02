@@ -26,6 +26,9 @@ private:
 
     std::vector<Tile> tiles;
 
+    // called to delete current textures
+    void unload_texs();
+
 public:
 
     Board();

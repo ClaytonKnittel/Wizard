@@ -270,6 +270,10 @@ void Tile::gen_vertices() {
     };
 }
 
+
+// default constructor only used when fields will be manually set
+Tile::Tile() {}
+
     
 Tile::Tile(texture * tex, int x, int y, int z) : tex(tex), x(x), y(y), z(z) {
 
