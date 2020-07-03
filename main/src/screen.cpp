@@ -15,12 +15,30 @@ Camera & Screen::get_cam() {
     return cam;
 }
 
+unsigned int Screen::get_width() const {
+    return width;
+}
+
+unsigned int Screen::get_height() const {
+    return height;
+}
+
 float Screen::aspect_ratio() const {
     return ((float) height) / width;
 }
 
 float Screen::inv_aspect_ratio() const {
     return ((float) width) / height;
+}
+
+
+void Screen::pix_to_int(double &x, double &y) const {
+    x = x * 2 / width - 1;
+    y = (-y * 2 / height + 1) * aspect_ratio();
+}
+
+void Screen::norm_to_int(double &x, double &y) const {
+    y *= aspect_ratio();
 }
 
 

@@ -116,6 +116,25 @@ void gl_register_key_callback(gl_context *c,
     glfwSetKeyCallback(c->window, &_gl_key_callback_proxy);
 }
 
+static void _gl_mouse_callback_proxy(GLFWwindow *w, int button, int action,
+        int mods) {
+
+    gl_context * c = get_window_context(w);
+    c->mouse_callback(c, button, action, mods);
+}
+
+void gl_register_mouse_callback(gl_context *c,
+        void (*callback)(gl_context*, int button, int action, int mods)) {
+
+    c->mouse_callback = callback;
+    glfwSetMouseButtonCallback(c->window, &_gl_mouse_callback_proxy);
+}
+
+
+void gl_mouse_pos(gl_context *c, double * x, double * y) {
+    glfwGetCursorPos(c->window, x, y);
+}
+
 
 void gl_clear(gl_context *c) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

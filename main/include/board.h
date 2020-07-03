@@ -47,6 +47,14 @@ public:
      */
     int load(const std::string & loc);
 
+
+    void get_coords(double world_x, double world_y, int &x, int &y) const;
+
+    /*
+     * adds given tile to the map
+     */
+    void add_tile(int x, int y, int tex_idx);
+
     virtual void render(const Screen & cam);
 };
 

@@ -17,7 +17,7 @@ class Tile : public Object {
 private:
 
     // which texture will be mapped to the tile
-    texture * tex;
+    texture_t * tex;
     int x, y;
 
     Triangle faces[TILE_N_PRIMITIVES];

@@ -1,5 +1,6 @@
 
 
+#include <cmath>
 #include <sstream>
 #include <unordered_map>
 #include <random>
@@ -7,7 +8,7 @@
 #include <math/random.h>
 
 #include <bin_stream.h>
-#include <map.h>
+#include <board.h>
 #include <util.h>
 
 
@@ -152,6 +153,28 @@ int Board::load(const std::string & loc) {
     }
 
     return 0;
+}
+
+
+void Board::get_coords(double world_x, double world_y, int &x, int &y) const {
+
+    x = floor((world_x - this->x) / this->scale);
+    y = floor((world_y - this->y) / this->scale); 
+
+}
+
+
+void Board::add_tile(int x, int y, int tex_idx) {
+    for (auto it = tiles.begin(); it != tiles.end();) {
+        const Tile &t = *it;
+        if (t.x == x && t.y == y) {
+            it = tiles.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
+    tiles.emplace_back(&texs[tex_idx], x, y);
 }
 
 

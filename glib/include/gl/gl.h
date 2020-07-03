@@ -28,6 +28,9 @@ typedef struct gl_context {
 
     // key callback function, forwarded in OpenGL key listener callback
     void (*key_callback)(struct gl_context*, int, int, int, int);
+    // mouse click callback function, forwarded in OpenGL mouse listener
+    // callback
+    void (*mouse_callback)(struct gl_context*, int, int, int);
 
     // for user to specify, will never be modified or read by these methods
     void * user_data;
@@ -48,6 +51,12 @@ void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
 void gl_register_key_callback(gl_context *c,
         void (*callback)(gl_context*, int key, int action, int scancode,
             int mods));
+
+void gl_register_mouse_callback(gl_context *c,
+        void (*callback)(gl_context*, int button, int action, int mods));
+
+
+void gl_mouse_pos(gl_context *c, double * x, double * y);
 
 
 void gl_clear(gl_context *c);
