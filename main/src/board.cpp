@@ -27,16 +27,17 @@ void Board::make_generic() {
     tex_files[1] = "main/img/gsquare2.bmp";
 
     for (int i = 0; i < W * H; i++) {
-        tiles.push_back(Tile(
+        tiles.emplace_back(
                 &texs[(i / W + i % W) % N_TEXS],
                 i % W,
                 i / W
-                ));
+                );
     }
 }
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
+    texs = nullptr;
     //make_generic();
     load(file);
 

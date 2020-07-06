@@ -16,10 +16,11 @@ $(shell mkdir -p $(OBJDIRS))
 DEPFILES=$(SRC:$(SDIR)/%.cpp=$(ODIR)/%.d)
 
 .PHONY: all
-all: $(BDIR)/game
+all: $(LDIR)/libgame.a
 
-$(BDIR)/game: $(OBJ) $(LDIR)/libglib.a
-	$(CPPC) $(CPPFLAGS) $(OBJ) -o $@ $(LDFLAGS) -lglib
+$(LDIR)/libgame.a: $(OBJ)
+	$(AR) -rcs $@ $^
+	# $(CPPC) $(CPPFLAGS) $(OBJ) -o $@ $(LDFLAGS) -lglib
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CPPC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)

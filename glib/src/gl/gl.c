@@ -100,16 +100,16 @@ void gl_set_bg_color(color_t color) {
 
 
 
-void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
+void _gl_key_callback_proxy(GLFWwindow *w, int key, int scancode, int action,
         int mods) {
 
     gl_context * c = get_window_context(w);
-    c->key_callback(c, key, action, scancode, mods);
+    c->key_callback(c, key, scancode, action, mods);
 }
 
 
 void gl_register_key_callback(gl_context *c,
-        void (*callback)(gl_context*, int key, int action, int scancode,
+        void (*callback)(gl_context*, int key, int scancode, int action,
             int mods)) {
 
     c->key_callback = callback;

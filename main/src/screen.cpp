@@ -35,10 +35,12 @@ float Screen::inv_aspect_ratio() const {
 void Screen::pix_to_int(double &x, double &y) const {
     x = x * 2 / width - 1;
     y = (-y * 2 / height + 1) * aspect_ratio();
+    cam.screen_to_int(x, y);
 }
 
 void Screen::norm_to_int(double &x, double &y) const {
     y *= aspect_ratio();
+    cam.screen_to_int(x, y);
 }
 
 

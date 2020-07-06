@@ -49,7 +49,7 @@ void _gl_key_callback_proxy(GLFWwindow *w, int key, int action, int scancode,
         int mods);
 
 void gl_register_key_callback(gl_context *c,
-        void (*callback)(gl_context*, int key, int action, int scancode,
+        void (*callback)(gl_context*, int key, int scancode, int action,
             int mods));
 
 void gl_register_mouse_callback(gl_context *c,

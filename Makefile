@@ -1,16 +1,20 @@
 include common.mk
 
 .PHONY: all
-all: dirs glib main
+all: dirs glib main progs
 
 .PHONY: dirs
 dirs:
 	@mkdir -p $(LDIR)
 	@mkdir -p $(BDIR)
 
+.PHONY: progs
+progs:
+	@(make -C $(PROGDIR) BASE_DIR=${CURDIR} BDIR=$(BDIR) LDIR=$(LDIR))
+
 .PHONY: main
 main:
-	@(make -C $(GAMEDIR) BASE_DIR=${CURDIR} BDIR=$(BDIR) LDIR=$(LDIR))
+	@(make -C $(GAMEDIR) BASE_DIR=${CURDIR} LDIR=$(LDIR))
 
 .PHONY: glib
 glib:

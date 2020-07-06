@@ -5,6 +5,7 @@ AR=ar
 BASE_DIR=$(shell pwd)
 GAMEDIR=$(BASE_DIR)/main
 LIBDIR=$(BASE_DIR)/glib
+PROGDIR=$(BASE_DIR)/progs
 
 LDIR=$(BASE_DIR)/lib
 BDIR=$(BASE_DIR)/bin
