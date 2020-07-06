@@ -153,6 +153,8 @@ int Board::load(const std::string & loc) {
         t.gen_vertices();
     }
 
+    set_preview(0, 0, 0);
+
     return 0;
 }
 
@@ -179,6 +181,17 @@ void Board::add_tile(int x, int y, int tex_idx) {
 }
 
 
+void Board::set_preview(int x, int y, int tex_idx) {
+    if (preview.x != x || preview.y != y || preview.tex != &texs[tex_idx]) {
+
+        preview.x = x;
+        preview.y = y;
+        preview.tex = &texs[tex_idx];
+        preview.gen_vertices();
+    }
+}
+
+
 void Board::render(const Screen & screen) {
     gl_use_program(&prog);
 
@@ -188,12 +201,19 @@ void Board::render(const Screen & screen) {
     // call superclass render callback
     upload_pos(&prog);
 
+    GLuint prev = gl_uniform_location(&prog, "preview");
+    glUniform1i(prev, false);
+
     // upload all tiles to renderer
-    for (Tile t : tiles) {
+    for (const Tile & t : tiles) {
         t.insert_all(rbuf);
     }
 
     // flush renderer to screen
+    rbuf.flush();
+
+    glUniform1i(prev, true);
+    preview.insert_all(rbuf);
     rbuf.flush();
 
 }

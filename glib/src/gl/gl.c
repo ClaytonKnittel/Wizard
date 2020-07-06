@@ -66,9 +66,7 @@ int gl_init(gl_context *context, GLint width, GLint height) {
     glfwSetWindowSizeCallback(window, &window_resize_cb);
 
     glEnable(GL_DEPTH_TEST);
-
-    glFrontFace(GL_CCW);
-    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

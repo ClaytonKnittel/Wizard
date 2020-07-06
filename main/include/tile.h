@@ -30,7 +30,7 @@ public:
     Tile(texture * tex, int x, int y);
     virtual ~Tile();
 
-    virtual void insert_all(Renderer &);
+    virtual void insert_all(Renderer &) const;
 };
 
 

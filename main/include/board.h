@@ -26,6 +26,8 @@ private:
 
     std::vector<Tile> tiles;
 
+    Tile preview;
+
     void make_generic();
 
     // called to delete current textures
@@ -54,6 +56,8 @@ public:
      * adds given tile to the map
      */
     void add_tile(int x, int y, int tex_idx);
+
+    void set_preview(int x, int y, int tex_idx);
 
     virtual void render(const Screen & cam);
 };

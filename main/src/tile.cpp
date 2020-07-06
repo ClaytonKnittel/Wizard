@@ -69,7 +69,7 @@ Tile::~Tile() {}
 
 
 
-void Tile::insert_all(Renderer & r) {
+void Tile::insert_all(Renderer & r) const {
     for (uint32_t i = 0; i < TILE_N_PRIMITIVES; i++) {
         r << faces[i];
     }

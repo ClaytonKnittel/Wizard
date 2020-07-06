@@ -39,23 +39,67 @@ void mouse_click(gl_context * c, int button, int action, int mods) {
 
 void key_press(gl_context * c, int key, int scancode, int action, int mods) {
 
-    if (key == GLFW_KEY_W) {
-        keys[0] = (action != GLFW_RELEASE);
+    if (mods & GLFW_MOD_CONTROL) {
+        if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+            g_b->save("test_board.txt");
+            printf("Saved to %s\n", "test_board.txt");
+        }
     }
-    else if (key == GLFW_KEY_A) {
-        keys[1] = (action != GLFW_RELEASE);
+    else {
+        if (key == GLFW_KEY_W) {
+            keys[0] = (action != GLFW_RELEASE);
+        }
+        else if (key == GLFW_KEY_A) {
+            keys[1] = (action != GLFW_RELEASE);
+        }
+        else if (key == GLFW_KEY_S) {
+            keys[2] = (action != GLFW_RELEASE);
+        }
+        else if (key == GLFW_KEY_D) {
+            keys[3] = (action != GLFW_RELEASE);
+        }
+        else if (key == GLFW_KEY_Z) {
+            keys[4] = (action != GLFW_RELEASE);
+        }
+        else if (key == GLFW_KEY_X) {
+            keys[5] = (action != GLFW_RELEASE);
+        }
     }
-    else if (key == GLFW_KEY_S) {
-        keys[2] = (action != GLFW_RELEASE);
+}
+
+
+
+void update(gl_context * c) {
+    double mx, my;
+    gl_mouse_pos(c, &mx, &my);
+    g_screen->pix_to_int(mx, my);
+
+    int tx, ty;
+    g_b->get_coords(mx, my, tx, ty);
+
+    if (clicked) {
+        g_b->add_tile(tx, ty, 0);
     }
-    else if (key == GLFW_KEY_D) {
-        keys[3] = (action != GLFW_RELEASE);
+
+    g_b->set_preview(tx, ty, 0);
+
+    if (keys[0]) {
+        g_screen->get_cam().move(0, SCROLL_SPEED);
     }
-    else if (key == GLFW_KEY_Z) {
-        keys[4] = (action != GLFW_RELEASE);
+    if (keys[1]) {
+        g_screen->get_cam().move(-SCROLL_SPEED, 0);
     }
-    else if (key == GLFW_KEY_X) {
-        keys[5] = (action != GLFW_RELEASE);
+    if (keys[2]) {
+        g_screen->get_cam().move(0, -SCROLL_SPEED);
+    }
+    if (keys[3]) {
+        g_screen->get_cam().move(SCROLL_SPEED, 0);
+    }
+    if (keys[4]) {
+        g_screen->get_cam().zoom(ZOOM_SPEED);
+    }
+    if (keys[5]) {
+        g_screen->get_cam().zoom(1 / ZOOM_SPEED);
     }
 }
 
@@ -74,41 +118,11 @@ int main(int argc, char *argv[]) {
     g_screen = &screen;
     g_b = &b;
 
-    //b.save("test_board.txt");
-    //b.load("test_board.txt");
-
     gl_register_key_callback(&c, &key_press);
     gl_register_mouse_callback(&c, &mouse_click);
 
     while (!gl_should_exit(&c)) {
-        if (clicked) {
-            double x, y;
-            gl_mouse_pos(&c, &x, &y);
-            g_screen->pix_to_int(x, y);
-
-            int tx, ty;
-            g_b->get_coords(x, y, tx, ty);
-            g_b->add_tile(tx, ty, 0);
-        }
-        if (keys[0]) {
-            g_screen->get_cam().move(0, SCROLL_SPEED);
-        }
-        if (keys[1]) {
-            g_screen->get_cam().move(-SCROLL_SPEED, 0);
-        }
-        if (keys[2]) {
-            g_screen->get_cam().move(0, -SCROLL_SPEED);
-        }
-        if (keys[3]) {
-            g_screen->get_cam().move(SCROLL_SPEED, 0);
-        }
-        if (keys[4]) {
-            g_screen->get_cam().zoom(ZOOM_SPEED);
-        }
-        if (keys[5]) {
-            g_screen->get_cam().zoom(1 / ZOOM_SPEED);
-        }
-
+        update(&c);
         gl_clear(&c);
 
         b.render(screen);

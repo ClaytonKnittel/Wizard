@@ -18,7 +18,7 @@ DEPFILES=$(SRC:$(SDIR)/%.cpp=$(ODIR)/%.d)
 .PHONY: all
 all: $(EXE)
 
-$(BDIR)/%: $(ODIR)/%.o
+$(BDIR)/%: $(ODIR)/%.o $(LDIR)/libgame.a $(LDIR)/libglib.a
 	$(CPPC) $(CPPFLAGS) $^ -lgame -lglib -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
