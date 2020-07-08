@@ -29,6 +29,15 @@ TextureSet::~TextureSet() {
 }
 
 
+int TextureSet::get_tile_w() const {
+    return tile_w;
+}
+
+int TextureSet::get_tile_h() const {
+    return tile_h;
+}
+
+
 const std::string & TextureSet::get_img_file() const {
     return img_file;
 }

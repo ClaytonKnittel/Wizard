@@ -34,8 +34,8 @@ void Board::make_generic() {
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    make_generic();
-    //load(file);
+    //make_generic();
+    load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
@@ -78,12 +78,13 @@ int Board::save(const std::string & loc) {
             tex_idxs[t.texset] = tex_idx;
 
             texs << t.texset->get_img_file();
+            texs << t.texset->get_tile_w() << t.texset->get_tile_h();
         }
         else {
             tex_idx = it->second;
         }
 
-        dat << t.x << t.y << tex_idx;
+        dat << t.x << t.y << tex_idx << t.tex_idx;
     }
 
     uint32_t n_tiles = tiles.size();
@@ -112,19 +113,20 @@ int Board::load(const std::string & loc) {
 
     for (int i = 0; i < n_texs; i++) {
         std::string name;
-        f >> name;
+        int tile_w, tile_h;
+        f >> name >> tile_w >> tile_h;
 
-        texs.emplace_back(std::move(name), 1, 1);
+        texs.emplace_back(std::move(name), tile_w, tile_h);
     }
 
     for (int i = 0; i < n_tiles; i++) {
         tiles.resize(i + 1);
         Tile & t = tiles[i];
 
-        int tex_idx;
-        f >> t.x >> t.y >> tex_idx;
+        int tex_idx, tex_idx2;
+        f >> t.x >> t.y >> tex_idx >> tex_idx2;
         t.texset = &texs[tex_idx];
-        t.tex_idx = 0;
+        t.tex_idx = tex_idx2;
 
         t.gen_vertices();
     }

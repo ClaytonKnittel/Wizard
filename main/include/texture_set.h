@@ -23,6 +23,9 @@ public:
 
     ~TextureSet();
 
+    int get_tile_w() const;
+    int get_tile_h() const;
+
     const std::string & get_img_file() const;
 
     const texture_t * get_tex() const;
