@@ -12,20 +12,20 @@
 #include <util.h>
 
 
-#define N_TEXS 2
+#define N_TEXS 4
 
 void Board::make_generic() {
 
 #define W 5
 #define H 5
 
-    texs.emplace_back("main/img/gsquare1.bmp", 1, 1);
-    texs.emplace_back("main/img/gsquare3.bmp", 1, 1);
+    texs.emplace_back("main/img/test.bmp", 2, 2);
+    //texs.emplace_back("main/img/gsquare3.bmp", 1, 1);
 
     for (int i = 0; i < W * H; i++) {
         tiles.emplace_back(
-                texs[(i / W + i % W) % N_TEXS],
-                0,
+                texs[0],
+                (i / W + i % W) % N_TEXS,
                 i % W,
                 i / W
                 );
@@ -34,8 +34,8 @@ void Board::make_generic() {
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    //make_generic();
-    load(file);
+    make_generic();
+    //load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
