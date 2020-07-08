@@ -8,15 +8,19 @@
 class TextureSet {
 private:
 
-    texture_t tex;
+    texture_t *tex;
     std::string img_file;
 
     int tile_w, tile_h;
 
-
 public:
 
     TextureSet(const std::string & img_file, int tile_w, int tile_h);
+
+    // move & copy constructors
+    TextureSet(const TextureSet &) = delete;
+    TextureSet(TextureSet &&);
+
     ~TextureSet();
 
     const std::string & get_img_file() const;

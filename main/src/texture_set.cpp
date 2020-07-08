@@ -5,16 +5,27 @@
 TextureSet::TextureSet(const std::string & img_file, int tile_w, int tile_h) :
         img_file(img_file), tile_w(tile_w), tile_h(tile_h) {
 
-    int res = texture_init(&this->tex, img_file.c_str());
+    this->tex = (texture_t *) malloc(sizeof(texture_t));
+    int res = texture_init(this->tex, img_file.c_str());
 
     if (res != 0) {
         fprintf(stderr, "Unable to load texture %s\n", img_file.c_str());
     }
 }
 
+TextureSet::TextureSet(TextureSet && t) : tex(t.tex),
+            img_file(std::move(t.img_file)), tile_w(t.tile_w), tile_h(t.tile_h) {
+
+    t.tex = nullptr;
+    t.img_file.clear();
+}
+
 
 TextureSet::~TextureSet() {
-    texture_destroy(&this->tex);
+    if (this->tex != nullptr) {
+        texture_destroy(this->tex);
+        free(this->tex);
+    }
 }
 
 
@@ -23,7 +34,7 @@ const std::string & TextureSet::get_img_file() const {
 }
 
 const texture_t * TextureSet::get_tex() const {
-    return &tex;
+    return tex;
 }
 
 
