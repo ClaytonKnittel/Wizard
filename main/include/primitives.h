@@ -12,7 +12,7 @@ struct Vertex {
 
 struct Triangle {
     Vertex vertices[3];
-    texture * tex;
+    const texture_t * tex;
 };
 
 

@@ -27,9 +27,9 @@ void texture_destroy(texture_t *t);
 /*
  * load a texture for rendering
  */
-void texture_use(texture_t *t);
+void texture_use(const texture_t *t);
 
-void texture_use_idx(texture_t *t, int idx);
+void texture_use_idx(const texture_t *t, int idx);
 
 
 #ifdef __cplusplus

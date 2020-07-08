@@ -30,7 +30,7 @@ private:
     /*
      * map from textures to indices in texture array to be sent to GPU
      */
-    std::unordered_map<texture *, int> tex_idxs;
+    std::unordered_map<const texture_t *, int> tex_idxs;
 
 
 public:

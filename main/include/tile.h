@@ -1,8 +1,7 @@
 #pragma once
 
-#include <gl/texture.h>
-
 #include <object.h>
+#include <texture_set.h>
 
 // 2 triangles per face, 5 sides (bottom never visible)
 #define TILE_N_PRIMITIVES 2
@@ -17,8 +16,11 @@ class Tile : public Object {
 private:
 
     // which texture will be mapped to the tile
-    texture_t * tex;
+    const TextureSet * texset;
+    int tex_idx;
     int x, y;
+
+    bool changed;
 
     Triangle faces[TILE_N_PRIMITIVES];
 
@@ -27,10 +29,14 @@ private:
 public:
 
     Tile();
-    Tile(texture * tex, int x, int y);
+    Tile(const TextureSet &, int tex_idx, int x, int y);
     virtual ~Tile();
 
-    virtual void insert_all(Renderer &) const;
+    void set_tex_idx(int tex_idx);
+
+    void mark_changed();
+
+    virtual void insert_all(Renderer &);
 };
 
 

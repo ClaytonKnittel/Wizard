@@ -16,7 +16,7 @@ public:
 
     // visitor for inserting all primitives of this object to a render buffer
     // via insert operator
-    virtual void insert_all(Renderer &) const = 0;
+    virtual void insert_all(Renderer &) = 0;
 
 };
 

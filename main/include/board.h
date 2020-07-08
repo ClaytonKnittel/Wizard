@@ -6,12 +6,12 @@
 #include <gl/drawable.h>
 #include <gl/gl.h>
 #include <gl/shader.h>
-#include <gl/texture.h>
 
 #include <entity.h>
 #include <tile.h>
 #include <render_buffer.h>
 #include <screen.h>
+#include <texture_set.h>
 
 class Board : public Entity {
 private:
@@ -19,19 +19,14 @@ private:
     RenderBuffer rbuf;
 
     program prog;
-    //drawable prot;
-    texture_t * texs;
-    // name of each of the textures
-    std::string * tex_files;
+    // list of pairs of textures and the names of each of the textures
+    std::vector<TextureSet> texs;
 
     std::vector<Tile> tiles;
 
     Tile preview;
 
     void make_generic();
-
-    // called to delete current textures
-    void unload_texs();
 
 public:
 

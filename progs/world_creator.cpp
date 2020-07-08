@@ -96,10 +96,10 @@ void update(gl_context * c) {
         g_screen->get_cam().move(SCROLL_SPEED, 0);
     }
     if (keys[4]) {
-        g_screen->get_cam().zoom(ZOOM_SPEED);
+        g_screen->get_cam().zoom(1 / ZOOM_SPEED);
     }
     if (keys[5]) {
-        g_screen->get_cam().zoom(1 / ZOOM_SPEED);
+        g_screen->get_cam().zoom(ZOOM_SPEED);
     }
 }
 
@@ -121,12 +121,13 @@ int main(int argc, char *argv[]) {
     gl_register_key_callback(&c, &key_press);
     gl_register_mouse_callback(&c, &mouse_click);
 
+    screen.get_cam().set_scale_bounds(.3f, 20.f);
+
     while (!gl_should_exit(&c)) {
         update(&c);
         gl_clear(&c);
 
         b.render(screen);
-        //screen.get_cam().move(.02f, -.01f);
 
         gl_render(&c);
         glfwPollEvents();

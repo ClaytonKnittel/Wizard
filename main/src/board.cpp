@@ -19,16 +19,13 @@ void Board::make_generic() {
 #define W 5
 #define H 5
 
-    texs = new texture[N_TEXS];
-    tex_files = new std::string[N_TEXS];
-    texture_init(&texs[0], "main/img/gsquare1.bmp");
-    tex_files[0] = "main/img/gsquare1.bmp";
-    texture_init(&texs[1], "main/img/gsquare2.bmp");
-    tex_files[1] = "main/img/gsquare2.bmp";
+    texs.emplace_back("main/img/gsquare1.bmp", 1, 1);
+    texs.emplace_back("main/img/gsquare3.bmp", 1, 1);
 
     for (int i = 0; i < W * H; i++) {
         tiles.emplace_back(
-                &texs[(i / W + i % W) % N_TEXS],
+                texs[(i / W + i % W) % N_TEXS],
+                0,
                 i % W,
                 i / W
                 );
@@ -37,38 +34,22 @@ void Board::make_generic() {
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    texs = nullptr;
-    //make_generic();
-    load(file);
+    make_generic();
+    //load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
     gl_use_program(&prog);
 
     // bind each texture in fragment shader to the proper texture unit
+    int loc = gl_uniform_location(&prog, "texs");
     for (int i = 0; i < 16; i++) {
-        int loc = gl_uniform_location(&prog, "texs") + i;
-        glUniform1i(loc, i);
-    }
-}
-
-
-void Board::unload_texs() {
-    if (texs != nullptr && tex_files != nullptr) {
-        for (int i = 0; i < N_TEXS; i++) {
-            texture_destroy(&texs[i]);
-        }
-        delete [] texs;
-        delete [] tex_files;
-
-        texs = nullptr;
-        tex_files = nullptr;
+        glUniform1i(loc + i, i);
     }
 }
 
 
 Board::~Board() {
-    unload_texs();
     gl_unload_program(&prog);
 }
 
@@ -86,19 +67,17 @@ int Board::save(const std::string & loc) {
 
     bstringstream texs;
     bstringstream dat;
-    std::unordered_map<texture *, int> tex_idxs;
+    std::unordered_map<const TextureSet *, int> tex_idxs;
 
     for (const Tile & t : tiles) {
         int tex_idx;
-        auto it = tex_idxs.find(t.tex);
+        auto it = tex_idxs.find(t.texset);
 
         if (it == tex_idxs.end()) {
             tex_idx = tex_idxs.size();
-            tex_idxs[t.tex] = tex_idx;
+            tex_idxs[t.texset] = tex_idx;
 
-            size_t arr_idx = (((uint64_t) t.tex) - ((uint64_t) this->texs)) /
-                             sizeof(texture_t);
-            texs << tex_files[arr_idx];
+            texs << t.texset->get_img_file();
         }
         else {
             tex_idx = it->second;
@@ -128,18 +107,14 @@ int Board::load(const std::string & loc) {
 
     f >> n_tiles >> n_texs;
 
-    unload_texs();
+    texs.clear();
     tiles.clear();
-
-    texs = new texture[n_texs];
-    tex_files = new std::string[n_texs];
 
     for (int i = 0; i < n_texs; i++) {
         std::string name;
         f >> name;
 
-        texture_init(&texs[i], name.c_str());
-        tex_files[i] = std::move(name);
+        texs.emplace_back(std::move(name), 1, 1);
     }
 
     for (int i = 0; i < n_tiles; i++) {
@@ -148,7 +123,8 @@ int Board::load(const std::string & loc) {
 
         int tex_idx;
         f >> t.x >> t.y >> tex_idx;
-        t.tex = &texs[tex_idx];
+        t.texset = &texs[tex_idx];
+        t.tex_idx = 0;
 
         t.gen_vertices();
     }
@@ -177,16 +153,17 @@ void Board::add_tile(int x, int y, int tex_idx) {
             it++;
         }
     }
-    tiles.emplace_back(&texs[tex_idx], x, y);
+    tiles.emplace_back(texs[tex_idx], 0, x, y);
 }
 
 
 void Board::set_preview(int x, int y, int tex_idx) {
-    if (preview.x != x || preview.y != y || preview.tex != &texs[tex_idx]) {
+    if (preview.x != x || preview.y != y || preview.texset != &texs[tex_idx]) {
 
         preview.x = x;
         preview.y = y;
-        preview.tex = &texs[tex_idx];
+        preview.texset = &texs[tex_idx];
+        preview.tex_idx = 0;
         preview.gen_vertices();
     }
 }
@@ -205,7 +182,7 @@ void Board::render(const Screen & screen) {
     glUniform1i(prev, false);
 
     // upload all tiles to renderer
-    for (const Tile & t : tiles) {
+    for (Tile & t : tiles) {
         t.insert_all(rbuf);
     }
 

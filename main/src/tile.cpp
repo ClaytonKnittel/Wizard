@@ -7,25 +7,30 @@ void Tile::gen_vertices() {
     float x = (float) this->x;
     float y = (float) this->y;
 
+    const texture_t * tex = texset->get_tex();
+
+    float llx, lly, urx, ury;
+    texset->get_bounds(tex_idx, llx, lly, urx, ury);
+
     faces[0] = {
         .vertices = {
             {
                 .x = x,
                 .y = y,
-                .tx = 0.f,
-                .ty = 0.f
+                .tx = llx,
+                .ty = lly
             },
             {
                 .x = x + 1,
                 .y = y,
-                .tx = 1.f,
-                .ty = 0.f
+                .tx = urx,
+                .ty = lly
             },
             {
                 .x = x + 1,
                 .y = y + 1,
-                .tx = 1.f,
-                .ty = 1.f
+                .tx = urx,
+                .ty = ury
             }
         },
         .tex = tex
@@ -35,24 +40,26 @@ void Tile::gen_vertices() {
             {
                 .x = x,
                 .y = y,
-                .tx = 0.f,
-                .ty = 0.f
+                .tx = llx,
+                .ty = lly
             },
             {
                 .x = x + 1,
                 .y = y + 1,
-                .tx = 1.f,
-                .ty = 1.f
+                .tx = urx,
+                .ty = ury
             },
             {
                 .x = x,
                 .y = y + 1,
-                .tx = 0.f,
-                .ty = 1.f
+                .tx = llx,
+                .ty = ury
             }
         },
         .tex = tex
     };
+
+    changed = false;
 }
 
 
@@ -60,16 +67,27 @@ void Tile::gen_vertices() {
 Tile::Tile() {}
 
     
-Tile::Tile(texture * tex, int x, int y) : tex(tex), x(x), y(y) {
-
-    gen_vertices();
+Tile::Tile(const TextureSet & tex, int tex_idx, int x, int y) : texset(&tex),
+        tex_idx(tex_idx), x(x), y(y), changed(true) {
 }
 
 Tile::~Tile() {}
 
 
+void Tile::set_tex_idx(int tex_idx) {
+    this->tex_idx = tex_idx;
+}
 
-void Tile::insert_all(Renderer & r) const {
+
+void Tile::mark_changed() {
+    this->changed = true;
+}
+
+
+void Tile::insert_all(Renderer & r) {
+    if (changed) {
+        gen_vertices();
+    }
     for (uint32_t i = 0; i < TILE_N_PRIMITIVES; i++) {
         r << faces[i];
     }

@@ -43,11 +43,11 @@ void texture_destroy(texture_t *t) {
 }
 
 
-void texture_use(texture_t *t) {
+void texture_use(const texture_t *t) {
     texture_use_idx(t, 0);
 }
 
-void texture_use_idx(texture_t *t, int idx) {
+void texture_use_idx(const texture_t *t, int idx) {
     glActiveTexture(GL_TEXTURE0 + idx);
     glBindTexture(GL_TEXTURE_2D, t->tex);
 }

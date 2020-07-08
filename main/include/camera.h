@@ -3,10 +3,18 @@
 #include <gl/shader.h>
 
 
+#define CAM_SCALE_UNBOUNDED -1.f
+
+
 class Camera {
 private:
 
     float x, y, scale;
+
+    /*
+     * bounds on the value of scale, negative values mean no bound
+     */
+    float min_scale, max_scale;
 
 public:
 
@@ -14,6 +22,8 @@ public:
     ~Camera();
 
     void screen_to_int(double &x, double &y) const;
+
+    void set_scale_bounds(float min_scale, float max_scale);
 
     void move(float dx, float dy);
 

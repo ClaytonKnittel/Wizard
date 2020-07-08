@@ -15,7 +15,7 @@ public:
     Chunk();
     virtual ~Chunk();
 
-    virtual void insert_all(Renderer &) const;
+    virtual void insert_all(Renderer &);
 };
 
 
