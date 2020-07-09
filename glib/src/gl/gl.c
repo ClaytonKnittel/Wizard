@@ -35,7 +35,7 @@ int gl_init(gl_context *context, GLint width, GLint height) {
         return -1;
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
+    //glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy

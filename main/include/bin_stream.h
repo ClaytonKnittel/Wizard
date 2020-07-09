@@ -26,6 +26,10 @@ public:
         return base.is_open();
     }
 
+    void close() {
+        base.close();
+    }
+
     std::string str() {
         return base.str();
     }

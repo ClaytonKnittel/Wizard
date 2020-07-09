@@ -4,6 +4,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <random>
+#include <vector>
 
 #include <math/random.h>
 
@@ -19,16 +20,27 @@ void Board::make_generic() {
 #define W 5
 #define H 5
 
-    texs.emplace_back("main/img/test.bmp", 2, 2);
-    //texs.emplace_back("main/img/gsquare3.bmp", 1, 1);
+    texs.add_texture("main/img/test.bmp", 2, 2);
+    //texs.emplace_back("main/img/test.bmp", 2, 2);
+    texs.add_texture("main/img/gsquare3.bmp", 1, 1);
 
     for (int i = 0; i < W * H; i++) {
-        tiles.emplace_back(
-                texs[0],
-                (i / W + i % W) % N_TEXS,
-                i % W,
-                i / W
-                );
+        if (i % 5 == 4) {
+            tiles.emplace_back(
+                    *texs.get_tex_set("gsquare3"),
+                    0,
+                    i % W,
+                    i / W
+                    );
+        }
+        else {
+            tiles.emplace_back(
+                    *texs.get_tex_set("test"),
+                    (i / W + i % W) % N_TEXS,
+                    i % W,
+                    i / W
+                    );
+        }
     }
 }
 
@@ -46,6 +58,8 @@ Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
     for (int i = 0; i < 16; i++) {
         glUniform1i(loc + i, i);
     }
+
+    set_preview(0, 0, "test", 0);
 }
 
 
@@ -94,6 +108,8 @@ int Board::save(const std::string & loc) {
     f.write(texs.str());
     f.write(dat.str());
 
+    f.close();
+
     return 0;
 }
 
@@ -111,12 +127,15 @@ int Board::load(const std::string & loc) {
     texs.clear();
     tiles.clear();
 
+    std::vector<std::string> names;
+
     for (int i = 0; i < n_texs; i++) {
         std::string name;
         int tile_w, tile_h;
         f >> name >> tile_w >> tile_h;
 
-        texs.emplace_back(std::move(name), tile_w, tile_h);
+        texs.add_texture(name, tile_w, tile_h);
+        names.push_back(name);
     }
 
     for (int i = 0; i < n_tiles; i++) {
@@ -125,15 +144,20 @@ int Board::load(const std::string & loc) {
 
         int tex_idx, tex_idx2;
         f >> t.x >> t.y >> tex_idx >> tex_idx2;
-        t.texset = &texs[tex_idx];
+        t.texset = texs.get_tex_set(names[tex_idx]);
         t.tex_idx = tex_idx2;
 
         t.gen_vertices();
     }
 
-    set_preview(0, 0, 0);
+    f.close();
 
     return 0;
+}
+
+
+const TextureCollection & Board::get_texture_collection() const {
+    return texs;
 }
 
 
@@ -145,7 +169,11 @@ void Board::get_coords(double world_x, double world_y, int &x, int &y) const {
 }
 
 
-void Board::add_tile(int x, int y, int tex_idx) {
+void Board::add_tile(int x, int y, const std::string & tex_name, int tex_idx) {
+    add_tile(x, y, texs.get_tex_set(tex_name), tex_idx);
+}
+
+void Board::add_tile(int x, int y, const TextureSet * ts, int tex_idx) {
     for (auto it = tiles.begin(); it != tiles.end();) {
         const Tile &t = *it;
         if (t.x == x && t.y == y) {
@@ -155,17 +183,24 @@ void Board::add_tile(int x, int y, int tex_idx) {
             it++;
         }
     }
-    tiles.emplace_back(texs[tex_idx], 0, x, y);
+    tiles.emplace_back(*ts, tex_idx, x, y);
 }
 
 
-void Board::set_preview(int x, int y, int tex_idx) {
-    if (preview.x != x || preview.y != y || preview.texset != &texs[tex_idx]) {
+void Board::set_preview(int x, int y, const std::string & tex_name,
+        int tex_idx) {
+    const TextureSet * ts = texs.get_tex_set(tex_name);
+    set_preview(x, y, ts, tex_idx);
+}
+
+void Board::set_preview(int x, int y, const TextureSet * ts, int tex_idx) {
+    if (preview.x != x || preview.y != y || preview.texset != ts ||
+            preview.tex_idx != tex_idx) {
 
         preview.x = x;
         preview.y = y;
-        preview.texset = &texs[tex_idx];
-        preview.tex_idx = 0;
+        preview.texset = ts;
+        preview.tex_idx = tex_idx;
         preview.gen_vertices();
     }
 }

@@ -5,6 +5,14 @@
 #include <gl/texture.h>
 
 
+class TextureSet;
+
+struct Sprite {
+    const TextureSet * texset;
+    int tex_idx;
+};
+
+
 class TextureSet {
 private:
 
