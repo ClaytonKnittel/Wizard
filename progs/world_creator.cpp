@@ -8,107 +8,11 @@
 #include <camera.h>
 #include <board.h>
 
+#include "ctrl.h"
+
 
 #define WIDTH 1024
 #define HEIGHT 780
-
-
-
-class Node {
-private:
-
-    bool terminal;
-
-    //void (*callback)(void);
-    std::function<void(void)> * callback;
-
-    std::unordered_map<char, Node *> children;
-
-public:
-
-    Node(bool terminal, std::function<void(void)> *callback=nullptr) : terminal(terminal),
-            callback(callback) {}
-
-    ~Node() {
-        for (auto it = children.begin(); it != children.end(); it++) {
-            delete it->second;
-        }
-        if (terminal) {
-            assert(callback != nullptr);
-            delete callback;
-        }
-    }
-
-    bool is_terminal() {
-        return terminal;
-    }
-
-    Node & add_child(int key) {
-        Node * succ;
-        auto it = children.find(key);
-        if (it == children.end()) {
-            succ = new Node(false);
-            children.insert(std::pair<char, Node *>(key, succ));
-        }
-        else {
-            succ = it->second;
-        }
-        return *succ;
-    }
-
-    Node * get_child(int key) {
-        auto it = children.find(key);
-        if (it == children.end()) {
-            return nullptr;
-        }
-        return it->second;
-    }
-
-    void make_terminal(std::function<void(void)> &&callback) {
-        terminal = true;
-        this->callback = new std::function<void(void)>(
-                std::forward<std::function<void(void)>>(callback));
-    }
-
-    void execute() {
-        (*this->callback)();
-    }
-
-};
-
-
-class Controller {
-private:
-
-    Node root;
-    Node * state;
-
-public:
-
-    Controller() : root(false), state(&root) {
-    }
-
-    ~Controller() {}
-
-    void press(int key) {
-        Node * next = state->get_child(key);
-        if (next == nullptr) {
-            state = &root;
-        }
-        else if (next->is_terminal()) {
-            next->execute();
-            state = &root;
-        }
-        else {
-            state = next;
-        }
-    }
-
-    Node & get_root() {
-        return root;
-    }
-
-};
 
 
 static Screen *g_screen;
@@ -147,7 +51,11 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
         }
     }
     else {
-        g_ctrl->press(key);
+
+        if (action == GLFW_PRESS) {
+            g_ctrl->press(key);
+        }
+
         if (key == GLFW_KEY_W) {
             keys[0] = (action != GLFW_RELEASE);
         }
@@ -173,19 +81,37 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
 void init_ctrl(Controller & c) {
     Node & root = c.get_root();
 
-    const TextureCollection * texs = &g_b->get_texture_collection();
+    const TextureCollection &texs = g_b->get_texture_collection();
 
-    const TextureSet * test = (*texs)["test"];
+    const TextureSet * test = texs["test"];
 
+    // default
     cur_item = { test, 0 };
 
-    root.add_child(GLFW_KEY_G).make_terminal([=](void) -> void {
-            cur_item = { test, 0 };
-            });
+    // test tiles
+    {
+        Node & gnode = root.add_child(GLFW_KEY_G);
 
-    root.add_child(GLFW_KEY_H).make_terminal([=](void) -> void {
-            cur_item.texset = test;
-            cur_item.tex_idx = 1;
+        gnode.add_child(GLFW_KEY_1).make_terminal([=](void) -> void {
+                cur_item = { test, 0 };
+                });
+
+        gnode.add_child(GLFW_KEY_2).make_terminal([=](void) -> void {
+                cur_item = { test, 1 };
+                });
+
+        gnode.add_child(GLFW_KEY_3).make_terminal([=](void) -> void {
+                cur_item = { test, 2 };
+                });
+
+        gnode.add_child(GLFW_KEY_4).make_terminal([=](void) -> void {
+                cur_item = { test, 3 };
+                });
+    }
+
+    // eraser
+    root.add_child(GLFW_KEY_E).make_terminal([=](void) -> void {
+            cur_item = { nullptr, 0 };
             });
 }
 

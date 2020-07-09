@@ -46,8 +46,8 @@ void Board::make_generic() {
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    make_generic();
-    //load(file);
+    //make_generic();
+    load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
@@ -183,7 +183,9 @@ void Board::add_tile(int x, int y, const TextureSet * ts, int tex_idx) {
             it++;
         }
     }
-    tiles.emplace_back(*ts, tex_idx, x, y);
+    if (ts != nullptr) {
+        tiles.emplace_back(*ts, tex_idx, x, y);
+    }
 }
 
 
@@ -201,7 +203,10 @@ void Board::set_preview(int x, int y, const TextureSet * ts, int tex_idx) {
         preview.y = y;
         preview.texset = ts;
         preview.tex_idx = tex_idx;
-        preview.gen_vertices();
+
+        if (ts != nullptr) {
+            preview.gen_vertices();
+        }
     }
 }
 
@@ -226,9 +231,11 @@ void Board::render(const Screen & screen) {
     // flush renderer to screen
     rbuf.flush();
 
-    glUniform1i(prev, true);
-    preview.insert_all(rbuf);
-    rbuf.flush();
+    if (preview.texset != nullptr) {
+        glUniform1i(prev, true);
+        preview.insert_all(rbuf);
+        rbuf.flush();
+    }
 
 }
 

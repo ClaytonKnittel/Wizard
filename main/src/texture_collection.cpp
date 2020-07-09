@@ -35,7 +35,22 @@ int TextureCollection::add_texture(const std::string & loc, int tile_w,
 const TextureSet * TextureCollection::get_tex_set(const std::string & name) const {
     auto it = m.find(name);
     if (it == m.end()) {
-        return nullptr;
+        // potentially was given as full file, try parsing name
+        std::string parsed_name;
+        std::cmatch cm;
+
+        std::regex_match(name.c_str(), cm, name_regex);
+
+        if (cm.size() < 2) {
+            return nullptr;
+        }
+        parsed_name = cm[1];
+
+        it = m.find(parsed_name);
+
+        if (it == m.end()) {
+            return nullptr;
+        }
     }
     return &it->second;
 }
