@@ -46,8 +46,9 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
 
     if (mods & GLFW_MOD_CONTROL) {
         if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-            g_b->save("test_board.txt");
-            printf("Saved to %s\n", "test_board.txt");
+            if (g_b->save("test_board.txt") == 0) {
+                printf("Saved to %s\n", "test_board.txt");
+            }
         }
     }
     else {
