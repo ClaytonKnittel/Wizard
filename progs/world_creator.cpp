@@ -103,24 +103,29 @@ void init_ctrl(Controller & c) {
 
         gnode.add_child(GLFW_KEY_1).make_terminal([=](void) -> void {
                 cur_item = { test, 0 };
+                g_st->disable();
                 });
 
         gnode.add_child(GLFW_KEY_2).make_terminal([=](void) -> void {
                 cur_item = { test, 1 };
+                g_st->disable();
                 });
 
         gnode.add_child(GLFW_KEY_3).make_terminal([=](void) -> void {
                 cur_item = { test, 2 };
+                g_st->disable();
                 });
 
         gnode.add_child(GLFW_KEY_4).make_terminal([=](void) -> void {
                 cur_item = { test, 3 };
+                g_st->disable();
                 });
     }
 
     // eraser
     root.add_child(GLFW_KEY_E).make_terminal([=](void) -> void {
             cur_item = { nullptr, 0 };
+            g_st->disable();
             });
 
     // select tool
@@ -132,9 +137,10 @@ void init_ctrl(Controller & c) {
                 g_st->enable();
                 });
 
+        /*
         st_node.add_exit_callback([=](void) -> void {
                 g_st->disable();
-                });
+                });*/
     }
 
     // camera control keys
