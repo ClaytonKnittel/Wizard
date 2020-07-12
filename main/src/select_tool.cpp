@@ -131,19 +131,19 @@ void SelectTool::begin_area(float mx, float my) {
     this->modified = true;
 }
 
-void SelectTool::update_area(float x, float y) {
-    int x_pos, y_pos;
+void SelectTool::update_area(float mx, float my) {
+    int x, y;
 
-    b.get_coords(x, y, x_pos, y_pos);
+    b.get_coords(mx, my, x, y);
 
-    if (x_pos == prev_mx && y_pos == prev_my) {
+    if (x == prev_mx && y == prev_my) {
         return;
     }
 
-    int minx = MIN(anchor_x, x_pos);
-    int maxx = MAX(anchor_x, x_pos) + 1;
-    int miny = MIN(anchor_y, y_pos);
-    int maxy = MAX(anchor_y, y_pos) + 1;
+    int minx = MIN(anchor_x, x);
+    int maxx = MAX(anchor_x, x) + 1;
+    int miny = MIN(anchor_y, y);
+    int maxy = MAX(anchor_y, y) + 1;
 
     this->w = (maxx - minx);
     this->h = (maxy - miny);
@@ -171,10 +171,18 @@ SelectTool::~SelectTool() {
     gl_unload_static_monochrome_drawable(&d);
 }
 
+bool SelectTool::is_enabled() const {
+    return this->state != disabled;
+}
+
 
 void SelectTool::enable() {
     this->state = enabled;
     this->modified = true;
+}
+
+bool SelectTool::is_visible() const {
+    return this->state != disabled && this->state != enabled;
 }
 
 
@@ -190,6 +198,7 @@ void SelectTool::click(float mx, float my) {
             break;
         case fixed_area:
             // TODO inside vs outside
+            this->state = enabled;
             break;
         case disabled:
         case drawing_area:
@@ -217,14 +226,19 @@ void SelectTool::mouse_at(float mx, float my) {
         case drawing_area:
             this->update_area(mx, my);
             break;
+        case dragging:
+            // TODO drag around
+            break;
         case disabled:
+        case enabled:
+        case fixed_area:
             break;
     }
 }
 
 
 void SelectTool::render(const Screen & screen) {
-    if (state == disabled) {
+    if (!this->is_visible()) {
         return;
     }
 

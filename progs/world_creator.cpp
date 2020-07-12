@@ -22,7 +22,7 @@ static Controller *g_ctrl;
 static SelectTool *g_st;
 static Sprite cur_item;
 
-static bool clicked = false, released = false;
+static bool clicked = false, held = false, released = false;
 
 static bool keys[6] = { false, false, false, false, false, false };
 
@@ -35,11 +35,13 @@ void mouse_click(gl_context * c, int button, int action, int mods) {
             action == GLFW_PRESS) {
 
         clicked = true;
+        held = true;
     }
     else if (button == GLFW_MOUSE_BUTTON_LEFT &&
             action == GLFW_RELEASE) {
 
         released = true;
+        held = false;
     }
 }
 
@@ -116,6 +118,20 @@ void init_ctrl(Controller & c) {
     root.add_child(GLFW_KEY_E).make_terminal([=](void) -> void {
             cur_item = { nullptr, 0 };
             });
+
+    // select tool
+    {
+        Node & st_node = root.add_child(GLFW_KEY_R);
+        
+        st_node.make_terminal([=](void) -> void {
+                cur_item = { nullptr, 0 };
+                g_st->enable();
+                });
+
+        st_node.add_exit_callback([=](void) -> void {
+                g_st->disable();
+                });
+    }
 }
 
 
@@ -128,16 +144,22 @@ void update(gl_context * c) {
     int tx, ty;
     g_b->get_coords(mx, my, tx, ty);
 
-    if (clicked) {
-        g_b->add_tile(tx, ty, cur_item.texset, cur_item.tex_idx);
-
-        g_st->enable();
-        g_st->click(mx, my);
+    if (held) {
+        if (g_st->is_enabled()) {
+            if (clicked) {
+                g_st->click(mx, my);
+            }
+        }
+        else {
+            g_b->add_tile(tx, ty, cur_item.texset, cur_item.tex_idx);
+        }
 
         clicked = false;
     }
     if (released) {
-        g_st->release();
+        if (g_st->is_enabled()) {
+            g_st->release();
+        }
 
         released = false;
     }

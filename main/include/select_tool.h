@@ -58,6 +58,9 @@ public:
     SelectTool(const Board & board);
     ~SelectTool();
 
+    bool is_enabled() const;
+    bool is_visible() const;
+
     void enable();
     void disable();
 

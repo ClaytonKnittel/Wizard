@@ -7,13 +7,15 @@ private:
 
     //void (*callback)(void);
     std::function<void(void)> * callback;
+    // to be called when this node is switched out of context
+    std::function<void(void)> * exit_callback;
 
     std::unordered_map<char, Node *> children;
 
 public:
 
-    Node(bool terminal, std::function<void(void)> *callback=nullptr) :
-            terminal(terminal), callback(callback) {}
+    Node(bool terminal) :
+            terminal(terminal), callback(nullptr), exit_callback(nullptr) {}
 
     ~Node() {
         for (auto it = children.begin(); it != children.end(); it++) {
@@ -50,14 +52,27 @@ public:
         return it->second;
     }
 
+    bool has_exit_callback() const {
+        return this->exit_callback != nullptr;
+    }
+
     void make_terminal(std::function<void(void)> &&callback) {
         terminal = true;
         this->callback = new std::function<void(void)>(
                 std::forward<std::function<void(void)>>(callback));
     }
 
+    void add_exit_callback(std::function<void(void)> &&exit_callback) {
+        this->exit_callback = new std::function<void(void)>(
+                std::forward<std::function<void(void)>>(exit_callback));
+    }
+
     void execute() {
         (*this->callback)();
+    }
+
+    void execute_exit() {
+        (*this->exit_callback)();
     }
 
 };
@@ -68,10 +83,12 @@ private:
 
     Node root;
     Node * state;
+    // last state to have been executed
+    Node * in_scope;
 
 public:
 
-    Controller() : root(false), state(&root) {
+    Controller() : root(false), state(&root), in_scope(nullptr) {
     }
 
     ~Controller() {}
@@ -82,7 +99,13 @@ public:
             state = &root;
         }
         else if (next->is_terminal()) {
+            if (in_scope != nullptr) {
+                if (in_scope->has_exit_callback()) {
+                    in_scope->execute_exit();
+                }
+            }
             next->execute();
+            in_scope = next;
             state = &root;
         }
         else {
