@@ -3,3 +3,4 @@ lib
 bin
 *.[od]
 *.swp
+.vscode

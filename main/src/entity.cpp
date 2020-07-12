@@ -6,6 +6,19 @@
 Entity::Entity(float x, float y, float scale) : x(x), y(y), scale(scale) {}
 
 
+float Entity::get_x() const {
+    return x;
+}
+
+float Entity::get_y() const {
+    return y;
+}
+
+float Entity::get_scale() const {
+    return scale;
+}
+
+
 void Entity::upload_pos(program * prog) {
     GLuint model = gl_uniform_location(prog, "model");
 

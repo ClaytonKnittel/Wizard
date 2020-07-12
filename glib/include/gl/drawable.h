@@ -54,6 +54,18 @@ int gl_load_static_monochrome_drawable(drawable *d, uint32_t *data,
  * initializes a dynamic drawable (can vary texture coordinates each frame)
  *
  * Expected data layout is as follows:
+ *  +------+------+------+
+ *  |  vx  |  vy  |  f   |
+ *  +------+------+------+
+ */
+int gl_load_dynamic_pos_float(drawable *d, const float *data,
+        size_t n_vertices);
+
+
+/*
+ * initializes a dynamic drawable (can vary texture coordinates each frame)
+ *
+ * Expected data layout is as follows:
  *  +------+------+------+------+
  *  |  vx  |  vy  |  tx  |  ty  |
  *  +------+------+------+------+
@@ -61,6 +73,10 @@ int gl_load_static_monochrome_drawable(drawable *d, uint32_t *data,
  * where (tx, ty) are the texture coordinates of the vertex
  */
 int gl_load_dynamic_textured(drawable *d, const float *data,
+        size_t n_vertices);
+
+
+int gl_update_dynamic_pos_float(drawable *d, const float *data,
         size_t n_vertices);
 
 

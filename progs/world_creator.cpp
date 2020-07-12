@@ -7,6 +7,7 @@
 
 #include <camera.h>
 #include <board.h>
+#include <select_tool.h>
 
 #include "ctrl.h"
 
@@ -18,9 +19,10 @@
 static Screen *g_screen;
 static Board *g_b;
 static Controller *g_ctrl;
+static SelectTool *g_st;
 static Sprite cur_item;
 
-static bool clicked = false;
+static bool clicked = false, released = false;
 
 static bool keys[6] = { false, false, false, false, false, false };
 
@@ -37,7 +39,7 @@ void mouse_click(gl_context * c, int button, int action, int mods) {
     else if (button == GLFW_MOUSE_BUTTON_LEFT &&
             action == GLFW_RELEASE) {
 
-        clicked = false;
+        released = true;
     }
 }
 
@@ -128,7 +130,19 @@ void update(gl_context * c) {
 
     if (clicked) {
         g_b->add_tile(tx, ty, cur_item.texset, cur_item.tex_idx);
+
+        g_st->enable();
+        g_st->click(mx, my);
+
+        clicked = false;
     }
+    if (released) {
+        g_st->release();
+
+        released = false;
+    }
+
+    g_st->mouse_at(mx, my);
 
     g_b->set_preview(tx, ty, cur_item.texset, cur_item.tex_idx);
 
@@ -164,10 +178,12 @@ int main(int argc, char *argv[]) {
     gl_set_bg_color(gen_color(255, 255, 255, 255));
 
     Board b("test_board.txt");
+    SelectTool st(b);
 
     g_screen = &screen;
     g_b = &b;
     g_ctrl = &ctrl;
+    g_st = &st;
 
     init_ctrl(ctrl);
 
@@ -181,6 +197,12 @@ int main(int argc, char *argv[]) {
         gl_clear(&c);
 
         b.render(screen);
+
+        double mx, my;
+        gl_mouse_pos(&c, &mx, &my);
+        g_screen->pix_to_int(mx, my);
+
+        st.render(screen);
 
         gl_render(&c);
         glfwPollEvents();

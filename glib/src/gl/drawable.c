@@ -65,6 +65,39 @@ int gl_load_static_monochrome_drawable(drawable *d, uint32_t *data,
     return 0;
 }
 
+
+int gl_load_dynamic_pos_float(drawable *d, const float *data,
+        size_t n_vertices) {
+
+    // drawing triangles
+    assert(n_vertices % 3 == 0);
+
+    d->size = n_vertices;
+
+    glGenVertexArrays(1, &d->vao);
+    glBindVertexArray(d->vao);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    size_t stride = 3 * sizeof(float);
+
+    glGenBuffers(1, &d->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
+    glBufferData(GL_ARRAY_BUFFER, stride * n_vertices, data,
+            GL_DYNAMIC_DRAW);
+
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*) 0);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride,
+            (GLvoid*) (2 * sizeof(float)));
+
+    glBindVertexArray(0);
+
+    return 0;
+}
+
+
 int gl_load_dynamic_textured(drawable *d, const float *data,
         size_t n_vertices) {
 
@@ -100,17 +133,34 @@ int gl_load_dynamic_textured(drawable *d, const float *data,
 }
 
 
-int gl_update_dynamic_textured(drawable *d, const float *data,
-        size_t n_vertices) {
+
+static int _gl_update_dynamic(drawable *d, const float *data,
+        size_t stride, size_t n_vertices) {
 
     assert(n_vertices <= d->size);
-
-    size_t stride = 4 * sizeof(float) + sizeof(int);
 
     glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, stride * n_vertices, data);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return 0;
+}
+
+
+int gl_update_dynamic_pos_float(drawable *d, const float *data,
+        size_t n_vertices) {
+
+    size_t stride = 3 * sizeof(float);
+
+    return _gl_update_dynamic(d, data, stride, n_vertices);
+}
+
+
+int gl_update_dynamic_textured(drawable *d, const float *data,
+        size_t n_vertices) {
+
+    size_t stride = 4 * sizeof(float) + sizeof(int);
+
+    return _gl_update_dynamic(d, data, stride, n_vertices);
 }
 
