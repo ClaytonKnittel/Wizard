@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 class Node {
 private:
 
@@ -9,13 +11,15 @@ private:
     std::function<void(void)> * callback;
     // to be called when this node is switched out of context
     std::function<void(void)> * exit_callback;
+    std::function<void(void)> * release_callback;
 
     std::unordered_map<char, Node *> children;
 
 public:
 
     Node(bool terminal) :
-            terminal(terminal), callback(nullptr), exit_callback(nullptr) {}
+            terminal(terminal), callback(nullptr), exit_callback(nullptr),
+            release_callback(nullptr) {}
 
     ~Node() {
         for (auto it = children.begin(); it != children.end(); it++) {
@@ -24,6 +28,12 @@ public:
         if (terminal) {
             assert(callback != nullptr);
             delete callback;
+            if (exit_callback != nullptr) {
+                delete exit_callback;
+            }
+            if (release_callback != nullptr) {
+                delete release_callback;
+            }
         }
     }
 
@@ -56,7 +66,12 @@ public:
         return this->exit_callback != nullptr;
     }
 
+    bool has_release_callback() const {
+        return this->release_callback != nullptr;
+    }
+
     void make_terminal(std::function<void(void)> &&callback) {
+        assert(!terminal);
         terminal = true;
         this->callback = new std::function<void(void)>(
                 std::forward<std::function<void(void)>>(callback));
@@ -67,12 +82,22 @@ public:
                 std::forward<std::function<void(void)>>(exit_callback));
     }
 
+    void add_release_callback(std::function<void(void)> &&release_callback) {
+        this->release_callback = new std::function<void(void)>(
+                std::forward<std::function<void(void)>>(release_callback));
+    }
+
+
     void execute() {
         (*this->callback)();
     }
 
     void execute_exit() {
         (*this->exit_callback)();
+    }
+
+    void execute_release() {
+        (*this->release_callback)();
     }
 
 };
@@ -85,6 +110,8 @@ private:
     Node * state;
     // last state to have been executed
     Node * in_scope;
+
+    std::unordered_map<int, Node *> held_keys;
 
 public:
 
@@ -107,9 +134,21 @@ public:
             next->execute();
             in_scope = next;
             state = &root;
+
+            if (in_scope->has_release_callback()) {
+                held_keys[key] = in_scope;
+            }
         }
         else {
             state = next;
+        }
+    }
+
+    void release(int key) {
+        auto it = held_keys.find(key);
+        if (it != held_keys.end()) {
+            it->second->execute_release();
+            held_keys.erase(it);
         }
     }
 

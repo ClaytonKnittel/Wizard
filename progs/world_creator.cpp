@@ -60,7 +60,11 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
         if (action == GLFW_PRESS) {
             g_ctrl->press(key);
         }
+        else if (action == GLFW_RELEASE) {
+            g_ctrl->release(key);
+        }
 
+        /*
         if (key == GLFW_KEY_W) {
             keys[0] = (action != GLFW_RELEASE);
         }
@@ -78,7 +82,7 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
         }
         else if (key == GLFW_KEY_X) {
             keys[5] = (action != GLFW_RELEASE);
-        }
+        }*/
     }
 }
 
@@ -130,6 +134,58 @@ void init_ctrl(Controller & c) {
 
         st_node.add_exit_callback([=](void) -> void {
                 g_st->disable();
+                });
+    }
+
+    // camera control keys
+    {
+
+        Node & up = root.add_child(GLFW_KEY_W);
+        up.make_terminal([=](void) -> void {
+                keys[0] = true;
+                });
+        up.add_release_callback([=](void) -> void {
+                keys[0] = false;
+                });
+
+        Node & left = root.add_child(GLFW_KEY_A);
+        left.make_terminal([=](void) -> void {
+                keys[1] = true;
+                });
+        left.add_release_callback([=](void) -> void {
+                keys[1] = false;
+                });
+
+        Node & down = root.add_child(GLFW_KEY_S);
+        down.make_terminal([=](void) -> void {
+                keys[2] = true;
+                });
+        down.add_release_callback([=](void) -> void {
+                keys[2] = false;
+                });
+
+        Node & right = root.add_child(GLFW_KEY_D);
+        right.make_terminal([=](void) -> void {
+                keys[3] = true;
+                });
+        right.add_release_callback([=](void) -> void {
+                keys[3] = false;
+                });
+
+        Node & zoom_in = root.add_child(GLFW_KEY_Z);
+        zoom_in.make_terminal([=](void) -> void {
+                keys[4] = true;
+                });
+        zoom_in.add_release_callback([=](void) -> void {
+                keys[4] = false;
+                });
+
+        Node & zoom_out = root.add_child(GLFW_KEY_X);
+        zoom_out.make_terminal([=](void) -> void {
+                keys[5] = true;
+                });
+        zoom_out.add_release_callback([=](void) -> void {
+                keys[5] = false;
                 });
     }
 }
