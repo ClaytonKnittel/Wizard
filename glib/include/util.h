@@ -5,8 +5,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include <print_colors.h>
 
 
 // reinterpret cast of int to float (keep bits same)
@@ -19,6 +22,18 @@ static float int_to_float(uint32_t i) {
     };
     return __v.fval;
 }
+
+
+#define P_FILE_LINE P_LGREEN __FILE__ P_DEFAULT ":" P_LCYAN "%d" P_DEFAULT
+
+#define WIZARD_ASSERT(expr) \
+    do { \
+        if (__builtin_expect(!(expr), 0)) { \
+            fprintf(stderr, P_FILE_LINE " " P_LRED "assert " P_LYELLOW "\"" \
+                    #expr "\"" P_LRED " failed" P_RESET "\n", __LINE__); \
+            assert(0); \
+        } \
+    } while (0)
 
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

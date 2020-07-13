@@ -1,6 +1,4 @@
 
-#include <cmath>
-
 #include <util.h>
 
 #include <select_tool.h>
@@ -194,12 +192,7 @@ void SelectTool::place_grabbed_tiles() {
 
 
 void SelectTool::begin_dragging(float mx, float my) {
-    this->anchor_x = this->blx;
-    this->anchor_y = this->bly;
-    this->prev_dx = 0;
-    this->prev_dy = 0;
-    this->anchor_mx = mx;
-    this->anchor_my = my;
+    b.get_coords(mx, my, this->prev_mx, this->prev_my);
     this->state = dragging;
 
     this->modified = false;
@@ -207,32 +200,32 @@ void SelectTool::begin_dragging(float mx, float my) {
 
 
 void SelectTool::drag_to(float mx, float my) {
-    int dx, dy;
+    int x, y;
 
-    dx = floor((mx - anchor_mx) / this->scale);
-    dy = floor((my - anchor_my) / this->scale);
+    b.get_coords(mx, my, x, y);
 
-    if (dx == prev_dx && dy == prev_dy) {
+    if (x == prev_mx && y == prev_my) {
         // no change
         return;
     }
 
-    this->blx = this->anchor_x + dx;
-    this->bly = this->anchor_y + dy;
+    int dx = x - this->prev_mx;
+    int dy = y - this->prev_my;
 
-    int tile_dx = dx - this->prev_dx;
-    int tile_dy = dy - this->prev_dy;
-    this->move_tiles(tile_dx, tile_dy);
+    this->blx += dx;
+    this->bly += dy;
 
-    this->prev_dx = dx;
-    this->prev_dy = dy;
+    this->move_tiles(dx, dy);
+
+    this->prev_mx = x;
+    this->prev_my = y;
 
     this->modified = true;
 }
 
 
 SelectTool::SelectTool(Board & board) : Entity(0, 0, 1.f), b(board),
-            state(disabled), modified(true),
+            state(disabled), modified(true), clipboard_full(false),
             anchor_x(0), anchor_y(0),
             prev_mx(0), prev_my(y), w(0), h(0) {
 
@@ -308,7 +301,67 @@ void SelectTool::release() {
 
 
 void SelectTool::delete_tiles() {
-    grabbed_tiles.clear();
+    if (this->is_enabled()) {
+        grabbed_tiles.clear();
+    }
+}
+
+
+void SelectTool::copy() {
+    if (this->is_enabled() && this->grabbed_tiles.size() > 0) {
+        // only copy if we are copying at least something
+        this->clipboard = this->grabbed_tiles;
+        this->clipboard_full = true;
+    }
+}
+
+
+void SelectTool::paste() {
+    if (!this->clipboard_full) {
+        return;
+    }
+    if (!this->is_enabled()) {
+        // cannot paste when not enabled
+        return;
+    }
+
+    if (this->state != enabled) {
+        // if in any state besides enabled, then there will potentially be
+        // tiles in grabbed_tiles
+        place_grabbed_tiles();
+    }
+
+    WIZARD_ASSERT(grabbed_tiles.size() == 0);
+    WIZARD_ASSERT(clipboard.size() > 0);
+
+    grabbed_tiles.reserve(clipboard.size());
+
+    auto it = clipboard.begin();
+
+    const Tile & first = *it;
+    int minx = first.get_x(), maxx = first.get_x();
+    int miny = first.get_y(), maxy = first.get_y();
+
+    grabbed_tiles.push_back(first);
+    it++;
+
+    for (; it != clipboard.end(); it++) {
+        grabbed_tiles.push_back(*it);
+
+        int x = it->get_x();
+        int y = it->get_y();
+
+        minx = MIN(minx, x);
+        miny = MIN(miny, y);
+        maxx = MAX(maxx, x);
+        maxy = MAX(maxy, y);
+    }
+
+    this->blx = minx;
+    this->bly = miny;
+    this->w = maxx - minx + 1;
+    this->h = maxy - miny + 1;
+    this->modified = true;
 }
 
 
@@ -334,6 +387,10 @@ void SelectTool::render(const Screen & screen) {
         return;
     }
 
+    if (this->grabbed_tiles.size() > 0) {
+        b.draw_tiles(screen, grabbed_tiles);
+    }
+
     this->scale = b.get_scale();
 
     if (modified) {
@@ -350,9 +407,5 @@ void SelectTool::render(const Screen & screen) {
     upload_pos(&prog);
 
     gl_draw_sub(&d, n_vertices);
-
-    if (this->grabbed_tiles.size() > 0) {
-        b.draw_tiles(screen, grabbed_tiles);
-    }
 }
 

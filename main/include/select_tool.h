@@ -27,7 +27,7 @@ private:
     constexpr static int fs_per_vertex = 3;
     constexpr static int n_vertices = 24;
 
-    // portion of a tile to be covered by select perimeter (1 / 16)
+    // portion of a tile to be covered by select perimeter (1 / 8)
     constexpr static float strip_portion = .125f;
 
     float _buf[fs_per_vertex * n_vertices];
@@ -41,8 +41,14 @@ private:
     Board & b;
     std::vector<Tile> grabbed_tiles;
 
+    /*
+     * when copy is called, the grabbed tiles are added to the clipboard, and
+     * upon calling paste, they will be moved to grabbed tiles
+     */
+    std::vector<Tile> clipboard;
+
     STState state;
-    bool modified;
+    bool modified : 1, clipboard_full : 1;
 
     // when in drawing mode, is the anchor position (starting mx, my when mouse
     // was first clicked)
@@ -50,22 +56,9 @@ private:
     // moved
     int anchor_x, anchor_y;
 
-    union {
-        // drawing mode
-        struct {
-            // prior mouse position in grid coordinates, only need to update when
-            // these have changed
-            int prev_mx, prev_my;
-        };
-        // dragging mode
-        struct {
-            // prior offsets from (anchor_x, anchor_y) the region was before
-            // this frame
-            int prev_dx, prev_dy;
-            // the place the region was originally clicked (world coordinates)
-            float anchor_mx, anchor_my;
-        };
-    };
+    // prior mouse position in grid coordinates, only need to update when
+    // these have changed
+    int prev_mx, prev_my;
 
     // bottom left of region is (blx, bly), width and height are w and h
     // respectively, used for drawing
@@ -127,6 +120,16 @@ public:
      * deletes all tiles in current selection
      */
     void delete_tiles();
+
+    /*
+     * copy the current selection of tiles to the clipboard
+     */
+    void copy();
+
+    /*
+     * paste the current selection of tiles in the clipboard to the screen
+     */
+    void paste();
 
     /*
      * world-coordinates of mouse, can be called every frame to continually

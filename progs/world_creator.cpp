@@ -143,9 +143,15 @@ void init_ctrl(Controller & c) {
                 });*/
 
         root.add_child(GLFW_KEY_BACKSPACE).make_terminal([=](void) -> void {
-                if (g_st->is_enabled()) {
-                    g_st->delete_tiles();
-                }
+                g_st->delete_tiles();
+                });
+
+        root.add_child(GLFW_KEY_Y).make_terminal([=](void) -> void {
+                g_st->copy();
+                });
+
+        root.add_child(GLFW_KEY_P).make_terminal([=](void) -> void {
+                g_st->paste();
                 });
     }
 
