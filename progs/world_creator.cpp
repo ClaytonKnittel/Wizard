@@ -137,13 +137,9 @@ void init_ctrl(Controller & c) {
                 g_st->enable();
                 });
 
-        /*
-        st_node.add_exit_callback([=](void) -> void {
-                g_st->disable();
-                });*/
-
         root.add_child(GLFW_KEY_BACKSPACE).make_terminal([=](void) -> void {
                 g_st->delete_tiles();
+                g_st->disappear();
                 });
 
         root.add_child(GLFW_KEY_Y).make_terminal([=](void) -> void {

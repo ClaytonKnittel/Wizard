@@ -113,6 +113,11 @@ public:
     void enable();
     void disable();
 
+    /*
+     * disappear from the screen, but remain enabled
+     */
+    void disappear();
+
     void click(float mx, float my);
     void release();
 

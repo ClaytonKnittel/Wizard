@@ -241,8 +241,13 @@ SelectTool::~SelectTool() {
     gl_unload_static_monochrome_drawable(&d);
 }
 
+
 bool SelectTool::is_enabled() const {
     return this->state != disabled;
+}
+
+bool SelectTool::is_visible() const {
+    return this->state != disabled && this->state != enabled;
 }
 
 
@@ -251,13 +256,16 @@ void SelectTool::enable() {
     this->modified = true;
 }
 
-bool SelectTool::is_visible() const {
-    return this->state != disabled && this->state != enabled;
+void SelectTool::disable() {
+    this->state = disabled;
 }
 
 
-void SelectTool::disable() {
-    this->state = disabled;
+void SelectTool::disappear() {
+    if (grabbed_tiles.size() > 0) {
+        place_grabbed_tiles();
+    }
+    this->state = enabled;
 }
 
 
