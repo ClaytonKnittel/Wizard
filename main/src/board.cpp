@@ -188,6 +188,24 @@ void Board::add_tile(int x, int y, const TextureSet * ts, int tex_idx) {
     }
 }
 
+void Board::add_tile(const Tile & t) {
+    add_tile(t.x, t.y, t.texset, t.tex_idx);
+}
+
+std::vector<Tile> Board::tiles_in_range(int llx, int lly, int urx, int ury) const {
+
+    std::vector<Tile> in_range;
+
+    for (auto it = tiles.begin(); it != tiles.end(); it++) {
+        const Tile &t = *it;
+        if (t.x >= llx && t.x <= urx && t.y >= lly && t.y <= ury) {
+            in_range.push_back(t);
+        }
+    }
+
+    return in_range;
+}
+
 
 void Board::set_preview(int x, int y, const std::string & tex_name,
         int tex_idx) {
@@ -212,6 +230,20 @@ void Board::set_preview(int x, int y, const TextureSet * ts, int tex_idx) {
 
 
 void Board::render(const Screen & screen) {
+    draw_tiles(screen, this->tiles);
+
+    if (preview.texset != nullptr) {
+        GLuint prev = gl_uniform_location(&prog, "preview");
+        glUniform1i(prev, true);
+        preview.insert_all(rbuf);
+        rbuf.flush();
+    }
+
+}
+
+
+
+void Board::draw_tiles(const Screen & screen, std::vector<Tile> & tiles) {
     gl_use_program(&prog);
 
     // upload camera and view transformation matrices
@@ -230,12 +262,5 @@ void Board::render(const Screen & screen) {
 
     // flush renderer to screen
     rbuf.flush();
-
-    if (preview.texset != nullptr) {
-        glUniform1i(prev, true);
-        preview.insert_all(rbuf);
-        rbuf.flush();
-    }
-
 }
 

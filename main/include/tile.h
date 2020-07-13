@@ -32,6 +32,14 @@ public:
     Tile(const TextureSet &, int tex_idx, int x, int y);
     virtual ~Tile();
 
+    int get_x() const;
+
+    int get_y() const;
+
+    void set_x(int x);
+
+    void set_y(int y);
+
     void set_tex_idx(int tex_idx);
 
     void mark_changed();

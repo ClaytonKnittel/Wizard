@@ -57,10 +57,24 @@ public:
     void add_tile(int x, int y, const std::string & tex_name, int tex_idx);
     void add_tile(int x, int y, const TextureSet * ts, int tex_idx);
 
+    void add_tile(const Tile & t);
+
+    /*
+     * returns a list of tiles in the smallest rectangle containing both
+     * (llx, lly) and (urx, ury)
+     */
+    std::vector<Tile> tiles_in_range(int llx, int lly, int urx, int ury) const;
+
     void set_preview(int x, int y, const std::string & tex_name, int tex_idx);
     void set_preview(int x, int y, const TextureSet * ts, int tex_idx);
 
     virtual void render(const Screen & cam);
+
+    /*
+     * draws a batch of tiles to the screen
+     */
+    void draw_tiles(const Screen & screen, std::vector<Tile> & tiles);
+
 };
 
 

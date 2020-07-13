@@ -141,6 +141,12 @@ void init_ctrl(Controller & c) {
         st_node.add_exit_callback([=](void) -> void {
                 g_st->disable();
                 });*/
+
+        root.add_child(GLFW_KEY_BACKSPACE).make_terminal([=](void) -> void {
+                if (g_st->is_enabled()) {
+                    g_st->delete_tiles();
+                }
+                });
     }
 
     // camera control keys

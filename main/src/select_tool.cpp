@@ -1,4 +1,6 @@
 
+#include <cmath>
+
 #include <util.h>
 
 #include <select_tool.h>
@@ -118,6 +120,16 @@ void SelectTool::update_buf() {
 }
 
 
+
+bool SelectTool::is_inside(float mx, float my) {
+    int x, y;
+    b.get_coords(mx, my, x, y);
+
+    return (x >= this->blx && x < this->blx + this->w) &&
+           (y >= this->bly && y < this->bly + this->h);
+}
+
+
 void SelectTool::begin_area(float mx, float my) {
     b.get_coords(mx, my, this->anchor_x, this->anchor_y);
     this->blx = this->anchor_x;
@@ -154,7 +166,72 @@ void SelectTool::update_area(float mx, float my) {
 }
 
 
-SelectTool::SelectTool(const Board & board) : Entity(0, 0, 1.f), b(board),
+void SelectTool::take_board_tiles() {
+    this->grabbed_tiles = b.tiles_in_range(blx, bly, blx + w - 1, bly + h - 1);
+
+    // erase each of the tiles from the board
+    for (const Tile & t : grabbed_tiles) {
+        b.add_tile(t.get_x(), t.get_y(), nullptr, 0);
+    }
+}
+
+
+void SelectTool::move_tiles(int dx, int dy) {
+    for (Tile & t : grabbed_tiles) {
+        t.set_x(t.get_x() + dx);
+        t.set_y(t.get_y() + dy);
+    }
+}
+
+
+void SelectTool::place_grabbed_tiles() {
+    for (const Tile & t : this->grabbed_tiles) {
+        b.add_tile(t);
+    }
+
+    grabbed_tiles.clear();
+}
+
+
+void SelectTool::begin_dragging(float mx, float my) {
+    this->anchor_x = this->blx;
+    this->anchor_y = this->bly;
+    this->prev_dx = 0;
+    this->prev_dy = 0;
+    this->anchor_mx = mx;
+    this->anchor_my = my;
+    this->state = dragging;
+
+    this->modified = false;
+}
+
+
+void SelectTool::drag_to(float mx, float my) {
+    int dx, dy;
+
+    dx = floor((mx - anchor_mx) / this->scale);
+    dy = floor((my - anchor_my) / this->scale);
+
+    if (dx == prev_dx && dy == prev_dy) {
+        // no change
+        return;
+    }
+
+    this->blx = this->anchor_x + dx;
+    this->bly = this->anchor_y + dy;
+
+    int tile_dx = dx - this->prev_dx;
+    int tile_dy = dy - this->prev_dy;
+    this->move_tiles(tile_dx, tile_dy);
+
+    this->prev_dx = dx;
+    this->prev_dy = dy;
+
+    this->modified = true;
+}
+
+
+SelectTool::SelectTool(Board & board) : Entity(0, 0, 1.f), b(board),
             state(disabled), modified(true),
             anchor_x(0), anchor_y(0),
             prev_mx(0), prev_my(y), w(0), h(0) {
@@ -198,7 +275,13 @@ void SelectTool::click(float mx, float my) {
             break;
         case fixed_area:
             // TODO inside vs outside
-            this->state = enabled;
+            if (this->is_inside(mx, my)) {
+                this->begin_dragging(mx, my);
+            }
+            else {
+                this->place_grabbed_tiles();
+                this->state = enabled;
+            }
             break;
         case disabled:
         case drawing_area:
@@ -210,6 +293,9 @@ void SelectTool::click(float mx, float my) {
 void SelectTool::release() {
     switch (this->state) {
         case drawing_area:
+            take_board_tiles();
+            state = fixed_area;
+            break;
         case dragging:
             state = fixed_area;
             break;
@@ -221,6 +307,11 @@ void SelectTool::release() {
 }
 
 
+void SelectTool::delete_tiles() {
+    grabbed_tiles.clear();
+}
+
+
 void SelectTool::mouse_at(float mx, float my) {
     switch (this->state) {
         case drawing_area:
@@ -228,6 +319,7 @@ void SelectTool::mouse_at(float mx, float my) {
             break;
         case dragging:
             // TODO drag around
+            this->drag_to(mx, my);
             break;
         case disabled:
         case enabled:
@@ -258,5 +350,9 @@ void SelectTool::render(const Screen & screen) {
     upload_pos(&prog);
 
     gl_draw_sub(&d, n_vertices);
+
+    if (this->grabbed_tiles.size() > 0) {
+        b.draw_tiles(screen, grabbed_tiles);
+    }
 }
 

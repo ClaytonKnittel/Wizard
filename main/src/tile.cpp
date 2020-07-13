@@ -74,8 +74,29 @@ Tile::Tile(const TextureSet & tex, int tex_idx, int x, int y) : texset(&tex),
 Tile::~Tile() {}
 
 
+int Tile::get_x() const {
+    return x;
+}
+
+int Tile::get_y() const {
+    return y;
+}
+
+
+void Tile::set_x(int x) {
+    this->x = x;
+    this->changed = true;
+}
+
+void Tile::set_y(int y) {
+    this->y = y;
+    this->changed = true;
+}
+
+
 void Tile::set_tex_idx(int tex_idx) {
     this->tex_idx = tex_idx;
+    this->changed = true;
 }
 
 
