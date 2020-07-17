@@ -22,12 +22,12 @@ void Board::make_generic() {
 
     texs.add_texture("main/img/test.bmp", 2, 2);
     //texs.emplace_back("main/img/test.bmp", 2, 2);
-    texs.add_texture("main/img/gsquare3.bmp", 1, 1);
+    texs.add_texture("main/img/badgrass.bmp", 1, 1);
 
     for (int i = 0; i < W * H; i++) {
         if (i % 5 == 4) {
             tiles.emplace_back(
-                    *texs.get_tex_set("gsquare3"),
+                    *texs.get_tex_set("badgrass"),
                     0,
                     i % W,
                     i / W
@@ -139,8 +139,7 @@ int Board::load(const std::string & loc) {
     }
 
     for (int i = 0; i < n_tiles; i++) {
-        tiles.resize(i + 1);
-        Tile & t = tiles[i];
+        Tile t;
 
         int tex_idx, tex_idx2;
         f >> t.x >> t.y >> tex_idx >> tex_idx2;
@@ -148,6 +147,8 @@ int Board::load(const std::string & loc) {
         t.tex_idx = tex_idx2;
 
         t.gen_vertices();
+
+        tiles.push_back(std::move(t));
     }
 
     f.close();
@@ -192,7 +193,7 @@ void Board::add_tile(const Tile & t) {
     add_tile(t.x, t.y, t.texset, t.tex_idx);
 }
 
-std::vector<Tile> Board::tiles_in_range(int llx, int lly, int urx, int ury) const {
+std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury) const {
 
     std::vector<Tile> in_range;
 
@@ -204,6 +205,14 @@ std::vector<Tile> Board::tiles_in_range(int llx, int lly, int urx, int ury) cons
     }
 
     return in_range;
+}
+
+
+std::vector<Tile> Board::tiles_in_range(float llx, float lly, float urx, float ury) const {
+    int _llx, _lly, _urx, _ury;
+    get_coords(llx, lly, _llx, _lly);
+    get_coords(urx, ury, _urx, _ury);
+    return tiles_in_index_range(_llx, _lly, _urx, _ury);
 }
 
 

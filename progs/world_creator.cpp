@@ -63,26 +63,6 @@ void key_press(gl_context * c, int key, int scancode, int action, int mods) {
         else if (action == GLFW_RELEASE) {
             g_ctrl->release(key);
         }
-
-        /*
-        if (key == GLFW_KEY_W) {
-            keys[0] = (action != GLFW_RELEASE);
-        }
-        else if (key == GLFW_KEY_A) {
-            keys[1] = (action != GLFW_RELEASE);
-        }
-        else if (key == GLFW_KEY_S) {
-            keys[2] = (action != GLFW_RELEASE);
-        }
-        else if (key == GLFW_KEY_D) {
-            keys[3] = (action != GLFW_RELEASE);
-        }
-        else if (key == GLFW_KEY_Z) {
-            keys[4] = (action != GLFW_RELEASE);
-        }
-        else if (key == GLFW_KEY_X) {
-            keys[5] = (action != GLFW_RELEASE);
-        }*/
     }
 }
 
@@ -93,6 +73,7 @@ void init_ctrl(Controller & c) {
     const TextureCollection &texs = g_b->get_texture_collection();
 
     const TextureSet * test = texs["test"];
+    const TextureSet * gras = texs["badgrass"];
 
     // default
     cur_item = { test, 0 };
@@ -118,6 +99,11 @@ void init_ctrl(Controller & c) {
 
         gnode.add_child(GLFW_KEY_4).make_terminal([=](void) -> void {
                 cur_item = { test, 3 };
+                g_st->disable();
+                });
+
+        root.add_child(GLFW_KEY_G).add_child(GLFW_KEY_5).make_terminal([=](void) -> void {
+                cur_item = { gras, 0 };
                 g_st->disable();
                 });
     }
@@ -269,7 +255,7 @@ int main(int argc, char *argv[]) {
 
     gl_set_bg_color(gen_color(255, 255, 255, 255));
 
-    Board b("test_board.txt");
+    Board b("clay_board.txt");
     SelectTool st(b);
 
     g_screen = &screen;

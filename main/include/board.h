@@ -63,7 +63,13 @@ public:
      * returns a list of tiles in the smallest rectangle containing both
      * (llx, lly) and (urx, ury)
      */
-    std::vector<Tile> tiles_in_range(int llx, int lly, int urx, int ury) const;
+    std::vector<Tile> tiles_in_index_range(int llx, int lly, int urx, int ury) const;
+
+    /*
+     * returns a list of all tiles that lie at least partially in the given range
+     * in world coordinates
+     */
+    std::vector<Tile> tiles_in_range(float llx, float lly, float urx, float ury) const;
 
     void set_preview(int x, int y, const std::string & tex_name, int tex_idx);
     void set_preview(int x, int y, const TextureSet * ts, int tex_idx);

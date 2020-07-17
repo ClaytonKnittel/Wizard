@@ -165,7 +165,7 @@ void SelectTool::update_area(float mx, float my) {
 
 
 void SelectTool::take_board_tiles() {
-    this->grabbed_tiles = b.tiles_in_range(blx, bly, blx + w - 1, bly + h - 1);
+    this->grabbed_tiles = b.tiles_in_index_range(blx, bly, blx + w - 1, bly + h - 1);
 
     // erase each of the tiles from the board
     for (const Tile & t : grabbed_tiles) {
@@ -257,6 +257,8 @@ void SelectTool::enable() {
 }
 
 void SelectTool::disable() {
+    // place any grabbed tiles we have
+    this->place_grabbed_tiles();
     this->state = disabled;
 }
 
