@@ -43,6 +43,10 @@ static float int_to_float(uint32_t i) {
 #define ALIGN_UP(a, align) \
     (((a) + ((align) - 1)) & ~((align) - 1))
 
+// align must be power of two
+#define ALIGN_DOWN(a, align) \
+    ((a) & ~((align) - 1))
+
 
 // rounds up a to nearest multiple of mod
 #define ROUND_UP(a, mod) \

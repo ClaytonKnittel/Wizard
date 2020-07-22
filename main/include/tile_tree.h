@@ -31,10 +31,15 @@ private:
         NodeBase(int x, int y, uint8_t level);
         virtual ~NodeBase();
 
-        int get_log_w();
-        int get_log_h();
-        int get_w();
-        int get_h();
+        static int get_log_w(uint8_t node_level);
+        static int get_log_h(uint8_t node_level);
+        static int get_w(uint8_t node_level);
+        static int get_h(uint8_t node_level);
+
+        int get_log_w() const;
+        int get_log_h() const;
+        int get_w() const;
+        int get_h() const;
 
         /*
          * creates a parent node for the node, with the correct template of
@@ -45,6 +50,9 @@ private:
          * parent
          */
         virtual NodeBase * make_parent(int x_idx, int y_idx) = 0;
+
+        virtual void insert_tile(const Tile & t) = 0;
+
     };
 
     template<typename Child_t>
@@ -58,7 +66,43 @@ private:
         Node(int x, int y, uint8_t level);
         virtual ~Node();
 
+        /*
+         * gives the mapping from 2-dimensional (x_idx, y_idx) coordinates in
+         * children grid to the index of that child in the children array
+         */
+        static uint32_t get_idx(int x_idx, int y_idx);
+
+        /*
+         * gives the mapping from tile coordinates in the world to the index
+         * of the child that would contain those coordinates in the children
+         * array
+         */
+        uint32_t get_tile_idx(int tile_x, int tile_y);
+
+        /*
+         * returns the grid coordinates of the child containing the tile at
+         * world coordinate pair (tile_x, tile_y)
+         */
+        void tile_to_grid_coords(int tile_x, int tile_y, int & x_idx,
+                int & y_idx);
+
+        /*
+         * makes a child node at the given children-grid coordinates, returning
+         * a reference to the newly created child afetr inserting it into the
+         * children array. If there was already a child there, it simply returns
+         * a reference to it
+         */
+        Child_t & try_make_child(int x_idx, int y_idx);
+
         virtual NodeBase * make_parent(int x_idx, int y_idx);
+        
+        virtual void insert_tile(const Tile & t);
+
+        /*
+         * sets the child of the node at the given index (x_idx, y_idx) in the
+         * 8x8 children grid to the given child
+         */
+        virtual void set_child(int x_idx, int y_idx, Child_t && child);
 
     };
 
@@ -68,6 +112,12 @@ private:
      * tree until a node is created which contains these coordinates
      */
     void prepare_insert(int x, int y);
+
+    /*
+     * insert the given tile, assuming that the tile already lies within the
+     * region covered by the root node
+     */
+    void unsafe_insert(const Tile & t);
 
 
     NodeBase * root;

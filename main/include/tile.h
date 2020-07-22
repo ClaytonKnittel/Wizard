@@ -13,6 +13,7 @@
  */
 class Tile : public Object {
     friend class Board;
+    friend class TileTree;
 private:
 
     // which texture will be mapped to the tile
