@@ -42,6 +42,31 @@ private:
         int get_h() const;
 
         /*
+         * creates a parent node for the node, with the correct template of
+         * Node
+         *
+         * the supplied x_idx and y_idx values are the coordinates in the
+         * children grid at which the current Node should reside in the new
+         * parent
+         */
+        virtual NodeBase * make_parent(int x_idx, int y_idx) = 0;
+
+        virtual void insert_tile(const Tile & t) = 0;
+
+    };
+
+    template<typename Child_t>
+    class __attribute__((aligned(128))) Node : public NodeBase {
+    public:
+
+        Child_t children[branch_factor];
+        // bitmask of occupied chunks
+        uint64_t occ_b;
+
+        Node(int x, int y, uint8_t level);
+        virtual ~Node();
+
+        /*
          * gives the mapping from 2-dimensional (x_idx, y_idx) coordinates in
          * children grid to the index of that child in the children array
          */
@@ -61,53 +86,6 @@ private:
         void tile_to_grid_coords(int tile_x, int tile_y, int & x_idx,
                 int & y_idx);
 
-
-        /*
-         * returns true if the given board coordinates lie within this child
-         * (i.e. could be a descendent of this node)
-         */
-        bool contains(int tile_x, int tile_y) const;
-
-        NodeBase * find_child_containing(int tile_x, int tile_y);
-
-        /*
-         * creates a parent node for the node, with the correct template of
-         * Node
-         *
-         * the supplied x_idx and y_idx values are the coordinates in the
-         * children grid at which the current Node should reside in the new
-         * parent
-         */
-        virtual NodeBase * make_parent(int x_idx, int y_idx) = 0;
-
-        virtual void insert_tile(const Tile & t) = 0;
-
-        /*
-         * given coordinates (child_x, child_y) in child coordinates
-         * (i.e. (0, 0) is the lower leftmost child, (7, 7) is the upper
-         * rightmost), returns the child at that spot, or nullptr if there
-         * is none
-         */
-        virtual NodeBase * get_child(int x_idx, int y_idx) = 0;
-
-        /*
-         * true if this node is a leaf node, false otherwise
-         */
-        virtual bool is_leaf() const = 0;
-
-    };
-
-    template<typename Child_t>
-    class __attribute__((aligned(128))) Node : public NodeBase {
-    public:
-
-        Child_t children[branch_factor];
-        // bitmask of occupied chunks
-        uint64_t occ_b;
-
-        Node(int x, int y, uint8_t level);
-        virtual ~Node();
-
         /*
          * makes a child node at the given children-grid coordinates, returning
          * a reference to the newly created child afetr inserting it into the
@@ -126,24 +104,7 @@ private:
          */
         virtual void set_child(int x_idx, int y_idx, Child_t && child);
 
-        /*
-         * get a tile at a specific index
-         */
-        Child_t * get_child_idx(int idx);
-
-        virtual NodeBase * get_child(int x_idx, int y_idx);
-        
-        virtual bool is_leaf() const;
-
     };
-
-
-    /*
-     * given coordinates (tile_x, tile_y), gives the lowest-level node that
-     * would contain that tile if it were to exist (which it may or may not),
-     * or nullptr if there is no such node
-     */
-    NodeBase * find_parent_of(int tile_x, int tile_y);
 
 
     /*
@@ -188,21 +149,16 @@ public:
     private:
 
         TileTree & owner;
-
-        // current region we are searching through to find nodes in the given
-        // range
-        NodeBase * cur_region;
+        Node<Tile> * cur_region;
 
         int llx, lly, urx, ury;
-        int cur_idx;
+        int curx, cury;
 
         iterator(TileTree & owner, int llx, int lly, int urx, int ury);
 
     public:
 
         const Tile & operator*() const;
-
-        iterator & operator++();
 
     };
 

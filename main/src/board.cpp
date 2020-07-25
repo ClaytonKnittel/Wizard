@@ -35,12 +35,6 @@ void Board::make_generic() {
                         i % W,
                         i / W)
                     );
-            /*tiles.emplace_back(
-                    *texs.get_tex_set("badgrass"),
-                    0,
-                    i % W,
-                    i / W
-                    );*/
         }
         else {
             tiles.insert_tile(
@@ -49,12 +43,6 @@ void Board::make_generic() {
                         i % W,
                         i / W)
                     );
-            /*tiles.emplace_back(
-                    *texs.get_tex_set("test"),
-                    (i / W + i % W) % N_TEXS,
-                    i % W,
-                    i / W
-                    );*/
         }
     }
 

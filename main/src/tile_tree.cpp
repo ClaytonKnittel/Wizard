@@ -1,4 +1,5 @@
 
+#include <stdexcept>
 #include <utility>
 
 #include <util.h>
@@ -53,6 +54,46 @@ int TileTree::NodeBase::get_h() const {
 }
 
 
+uint32_t TileTree::NodeBase::get_idx(int x_idx, int y_idx) {
+    return y_idx * children_dim + x_idx;
+}
+
+
+uint32_t TileTree::NodeBase::get_tile_idx(int tile_x, int tile_y) {
+    int x_idx, y_idx;
+    tile_to_grid_coords(tile_x, tile_y, x_idx, y_idx);
+    return get_idx(x_idx, y_idx);
+}
+
+
+void TileTree::NodeBase::tile_to_grid_coords(int tile_x, int tile_y,
+        int & x_idx, int & y_idx) {
+    int dx = tile_x - this->x;
+    int dy = tile_y - this->y;
+
+    x_idx = dx >> (log_children_dim * this->node_level);
+    y_idx = dy >> (log_children_dim * this->node_level);
+}
+
+
+bool TileTree::NodeBase::contains(int tile_x, int tile_y) const {
+    uint32_t dx = static_cast<uint32_t>(tile_x - this->x);
+    uint32_t dy = static_cast<uint32_t>(tile_y - this->y);
+
+    return !(dx >> (log_children_dim * (this->node_level + 1))) &&
+           !(dy >> (log_children_dim * (this->node_level + 1)));
+}
+
+
+TileTree::NodeBase * TileTree::NodeBase::find_child_containing(int tile_x, int tile_y) {
+    int x_idx, y_idx;
+    assert(this->contains(tile_x, tile_y));
+
+    this->tile_to_grid_coords(tile_x, tile_y, x_idx, y_idx);
+    return get_child(x_idx, y_idx);
+}
+
+
 template<typename Child_t>
 TileTree::Node<Child_t>::Node(int x, int y, uint8_t level) :
     NodeBase(x, y, level), children{}, occ_b(0) {}
@@ -69,27 +110,6 @@ TileTree::Node<Child_t>::~Node() {
 
 template<>
 TileTree::Node<Tile>::~Node() {
-}
-
-
-template<typename Child_t>
-uint32_t TileTree::Node<Child_t>::get_idx(int x_idx, int y_idx) {
-    return y_idx * children_dim + x_idx;
-}
-
-template<typename Child_t>
-uint32_t TileTree::Node<Child_t>::get_tile_idx(int tile_x, int tile_y) {
-    int x_idx, y_idx;
-    tile_to_grid_coords(tile_x, tile_y, x_idx, y_idx);
-    return get_idx(x_idx, y_idx);
-}
-
-template<typename Child_t>
-void TileTree::Node<Child_t>::tile_to_grid_coords(int tile_x, int tile_y,
-        int & x_idx, int & y_idx) {
-
-    x_idx = (tile_x - this->x) / this->get_w(this->node_level - 1);
-    y_idx = (tile_y - this->y) / this->get_h(this->node_level - 1);
 }
 
 template<>
@@ -157,6 +177,57 @@ void TileTree::Node<Child_t>::set_child(int x_idx, int y_idx, Child_t && child) 
     children[get_idx(x_idx, y_idx)] = std::forward<Child_t>(child);
 }
 
+
+template<typename Child_t>
+Child_t * TileTree::Node<Child_t>::get_child_idx(int idx) {
+    return &children[idx];
+}
+
+
+template<typename Child_t>
+TileTree::NodeBase * TileTree::Node<Child_t>::get_child(int x_idx, int y_idx) {
+    return children[get_idx(x_idx, y_idx)];
+}
+
+// leaf nodes do not have children
+template<>
+TileTree::NodeBase * TileTree::Node<Tile>::get_child(int x_idx, int y_idx) {
+    return nullptr;
+}
+
+template<typename Child_t>
+bool TileTree::Node<Child_t>::is_leaf() const {
+    return false;
+}
+
+
+template<>
+bool TileTree::Node<Tile>::is_leaf() const {
+    return true;
+}
+
+
+TileTree::NodeBase * TileTree::find_parent_of(int tile_x, int tile_y) {
+    NodeBase * node = this->root;
+
+    if (node == nullptr) {
+        return nullptr;
+    }
+
+    if (!node->contains(tile_x, tile_y)) {
+        return nullptr;
+    }
+
+    while (!node->is_leaf()) {
+        NodeBase * child = node->find_child_containing(tile_x, tile_y);
+        if (child == nullptr) {
+            break;
+        }
+        node = child;
+    }
+
+    return node;
+}
 
 
 void TileTree::prepare_insert(int x, int y) {
@@ -274,10 +345,68 @@ void TileTree::insert_tile(const Tile & t) {
 
 
 
+TileTree::iterator::iterator(TileTree & owner, int llx, int lly, int urx, int ury) :
+        owner(owner), llx(llx), lly(lly), urx(urx), ury(ury) {
+
+    cur_region = owner.find_parent_of(llx, lly);
+}
+
+
+const Tile & TileTree::iterator::operator*() const {
+    Node<Tile> * n;
+
+    if (cur_region == nullptr) {
+        throw new std::runtime_error("Dereferenced TileTree iterator beyond the "
+                "valid range of iteration");
+    }
+
+    n = dynamic_cast<Node<Tile> *>(cur_region);
+    assert(n != nullptr);
+
+    return *n->get_child_idx(cur_idx);
+}
+
+
+TileTree::iterator & TileTree::iterator::operator++() {
+    return *this;
+}
+
+
+
+TileTree::iterator TileTree::begin() {
+    if (this->root == nullptr) {
+        return iterator(*this, 0, 0, 0, 0);
+    }
+    else {
+        int x, y, w, h;
+        x = root->x;
+        y = root->y;
+        w = root->get_w();
+        h = root->get_h();
+        return iterator(*this, x, y, x + w, y + h);
+    }
+}
+
+
+TileTree::iterator TileTree::end() {
+    if (this->root == nullptr) {
+        return iterator(*this, 0, 0, 0, 0);
+    }
+    else {
+        int x, y, w, h;
+        x = root->x;
+        y = root->y;
+        w = root->get_w();
+        h = root->get_h();
+        return iterator(*this, x + w, y + h, x + w, y + h);
+    }
+}
+
+
+
 TileTree::iterator TileTree::find_all(int llx, int lly, int urx, int ury) {
 
-    return TileTree::iterator();
-    
+    return iterator(*this, llx, lly, urx, ury);
 }
 
 
