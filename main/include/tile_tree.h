@@ -117,7 +117,9 @@ private:
      * insert the given tile, assuming that the tile already lies within the
      * region covered by the root node
      */
-    void unsafe_insert(const Tile & t);
+    void do_insert(const Tile & t);
+
+    void print_node(const NodeBase & node) const;
 
 
     NodeBase * root;
@@ -126,6 +128,11 @@ public:
 
     TileTree();
     ~TileTree();
+
+    /*
+     * erases all contents of the tree
+     */
+    void clear();
 
     void insert_tile(const Tile & t);
 
@@ -145,6 +152,11 @@ public:
      * rectangle (in board coordinates)
      */
     iterator find_all(int llx, int lly, int urx, int ury);
+
+    /*
+     * for debugging, prints the tree visually
+     */
+    void print_tree() const;
 
 };
 

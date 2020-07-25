@@ -64,7 +64,7 @@ void Tile::gen_vertices() {
 
 
 // default constructor only used when fields will be manually set
-Tile::Tile() {}
+Tile::Tile() : texset(nullptr), tex_idx(0), x(0), y(0), changed(false) {}
 
     
 Tile::Tile(const TextureSet & tex, int tex_idx, int x, int y) : texset(&tex),

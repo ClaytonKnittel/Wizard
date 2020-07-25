@@ -12,6 +12,7 @@
 #include <screen.h>
 #include <texture_collection.h>
 #include <texture_set.h>
+#include <tile_tree.h>
 
 
 class Board : public Entity {
@@ -23,7 +24,8 @@ private:
     // list of pairs of textures and the names of each of the textures
     TextureCollection texs;
 
-    std::vector<Tile> tiles;
+    TileTree tiles;
+    //std::vector<Tile> tiles;
 
     Tile preview;
 

@@ -17,37 +17,55 @@
 
 void Board::make_generic() {
 
-#define W 5
+#define W 12
 #define H 5
 
     texs.add_texture("main/img/test.bmp", 2, 2);
     //texs.emplace_back("main/img/test.bmp", 2, 2);
     texs.add_texture("main/img/badgrass.bmp", 1, 1);
+    
+    printf("Before:\n");
+    tiles.print_tree();
 
     for (int i = 0; i < W * H; i++) {
         if (i % 5 == 4) {
-            tiles.emplace_back(
+            tiles.insert_tile(
+                    Tile(*texs.get_tex_set("badgrass"),
+                        0,
+                        i % W,
+                        i / W)
+                    );
+            /*tiles.emplace_back(
                     *texs.get_tex_set("badgrass"),
                     0,
                     i % W,
                     i / W
-                    );
+                    );*/
         }
         else {
-            tiles.emplace_back(
+            tiles.insert_tile(
+                    Tile(*texs.get_tex_set("test"),
+                        (i / W + i % W) % N_TEXS,
+                        i % W,
+                        i / W)
+                    );
+            /*tiles.emplace_back(
                     *texs.get_tex_set("test"),
                     (i / W + i % W) % N_TEXS,
                     i % W,
                     i / W
-                    );
+                    );*/
         }
     }
+
+    printf("\nAfter:\n");
+    tiles.print_tree();
 }
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
 
-    //make_generic();
-    load(file);
+    make_generic();
+    //load(file);
 
     gl_load_program(&prog, "main/res/tile.vs", "main/res/tile.fs");
 
@@ -83,6 +101,7 @@ int Board::save(const std::string & loc) {
     bstringstream dat;
     std::unordered_map<const TextureSet *, int> tex_idxs;
 
+    /*
     for (const Tile & t : tiles) {
         int tex_idx;
         auto it = tex_idxs.find(t.texset);
@@ -108,7 +127,7 @@ int Board::save(const std::string & loc) {
     f.write(texs.str());
     f.write(dat.str());
 
-    f.close();
+    f.close();*/
 
     return 0;
 }
@@ -127,6 +146,7 @@ int Board::load(const std::string & loc) {
     texs.clear();
     tiles.clear();
 
+    /*
     std::vector<std::string> names;
 
     for (int i = 0; i < n_texs; i++) {
@@ -151,7 +171,7 @@ int Board::load(const std::string & loc) {
         tiles.push_back(std::move(t));
     }
 
-    f.close();
+    f.close();*/
 
     return 0;
 }
@@ -175,17 +195,9 @@ void Board::add_tile(int x, int y, const std::string & tex_name, int tex_idx) {
 }
 
 void Board::add_tile(int x, int y, const TextureSet * ts, int tex_idx) {
-    for (auto it = tiles.begin(); it != tiles.end();) {
-        const Tile &t = *it;
-        if (t.x == x && t.y == y) {
-            it = tiles.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
     if (ts != nullptr) {
-        tiles.emplace_back(*ts, tex_idx, x, y);
+        tiles.insert_tile(Tile(*ts, tex_idx, x, y));
+        //tiles.emplace_back(*ts, tex_idx, x, y);
     }
 }
 
@@ -197,12 +209,13 @@ std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury
 
     std::vector<Tile> in_range;
 
+    /*
     for (auto it = tiles.begin(); it != tiles.end(); it++) {
         const Tile &t = *it;
         if (t.x >= llx && t.x <= urx && t.y >= lly && t.y <= ury) {
             in_range.push_back(t);
         }
-    }
+    }*/
 
     return in_range;
 }
@@ -239,7 +252,7 @@ void Board::set_preview(int x, int y, const TextureSet * ts, int tex_idx) {
 
 
 void Board::render(const Screen & screen) {
-    draw_tiles(screen, this->tiles);
+    //draw_tiles(screen, this->tiles);
 
     if (preview.texset != nullptr) {
         GLuint prev = gl_uniform_location(&prog, "preview");

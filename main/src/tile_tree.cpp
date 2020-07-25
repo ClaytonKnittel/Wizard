@@ -57,6 +57,7 @@ template<typename Child_t>
 TileTree::Node<Child_t>::Node(int x, int y, uint8_t level) :
     NodeBase(x, y, level), children{}, occ_b(0) {}
 
+
 template<typename Child_t>
 TileTree::Node<Child_t>::~Node() {
     for (int i = 0; i < NodeBase::branch_factor; i++) {
@@ -216,8 +217,33 @@ void TileTree::prepare_insert(int x, int y) {
 }
 
 
-void TileTree::unsafe_insert(const Tile & t) {
-    
+void TileTree::do_insert(const Tile & t) {
+    root->insert_tile(t);
+}
+
+
+void TileTree::print_node(const NodeBase & node) const {
+    int level = root->node_level - node.node_level;
+    printf("%*sNode (%p) (%d, %d), %dx%d\n", level, "", &node, node.x, node.y,
+            node.get_w(), node.get_h());
+
+    const Node<Tile> * leaf = dynamic_cast<const Node<Tile> *>(&node);
+    if (leaf != nullptr) {
+        for (int i = 0; i < NodeBase::branch_factor; i++) {
+            if (leaf->children[i].texset != nullptr) {
+                printf("%*sLeaf (%d, %d)\n", level + 1, "", leaf->children[i].x, leaf->children[i].y);
+            }
+        }
+    }
+    else {
+        const Node<NodeBase *> * n = dynamic_cast<const Node<NodeBase *> *>(&node);
+        assert(n != nullptr);
+        for (int i = 0; i < NodeBase::branch_factor; i++) {
+            if (n->children[i] != nullptr) {
+                print_node(*n->children[i]);
+            }
+        }
+    }
 }
 
 
@@ -233,10 +259,17 @@ TileTree::~TileTree() {
 }
 
 
+void TileTree::clear() {
+    if (root != nullptr) {
+        delete root;
+        root = nullptr;
+    }
+}
+
 
 void TileTree::insert_tile(const Tile & t) {
     prepare_insert(t.x, t.y);
-    unsafe_insert(t);
+    do_insert(t);
 }
 
 
@@ -245,6 +278,15 @@ TileTree::iterator TileTree::find_all(int llx, int lly, int urx, int ury) {
 
     return TileTree::iterator();
     
+}
+
+
+
+
+void TileTree::print_tree() const {
+    if (root != nullptr) {
+        print_node(*root);
+    }
 }
 
 
