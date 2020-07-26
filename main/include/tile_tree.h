@@ -4,6 +4,10 @@
 
 #include <tile.h>
 
+
+typedef uint64_t node_bmask_t;
+
+
 class TileTree {
 private:
 
@@ -41,6 +45,8 @@ private:
         int get_w() const;
         int get_h() const;
 
+        uint8_t get_node_level() const;
+
         /*
          * gives the mapping from 2-dimensional (x_idx, y_idx) coordinates in
          * children grid to the index of that child in the children array
@@ -52,14 +58,14 @@ private:
          * of the child that would contain those coordinates in the children
          * array
          */
-        uint32_t get_tile_idx(int tile_x, int tile_y);
+        uint32_t get_tile_idx(int tile_x, int tile_y) const;
 
         /*
          * returns the grid coordinates of the child containing the tile at
          * world coordinate pair (tile_x, tile_y)
          */
         void tile_to_grid_coords(int tile_x, int tile_y, int & x_idx,
-                int & y_idx);
+                int & y_idx) const;
 
 
         /*
@@ -95,6 +101,15 @@ private:
          */
         virtual bool is_leaf() const = 0;
 
+        /*
+         * given the bounds of a rectangular region, returns a bitmask
+         * corresponding to the set of children of this node which lie at
+         * least partially in the region
+         *
+         * the upper bounds of the rectangular region are non-inclusive
+         */
+        virtual node_bmask_t gen_clipped_bmask(int llx, int lly, int urx, int ury) const = 0;
+
     };
 
     template<typename Child_t>
@@ -103,7 +118,7 @@ private:
 
         Child_t children[branch_factor];
         // bitmask of occupied chunks
-        uint64_t occ_b;
+        node_bmask_t occ_b;
 
         Node(int x, int y, uint8_t level);
         virtual ~Node();
@@ -135,6 +150,8 @@ private:
         
         virtual bool is_leaf() const;
 
+        virtual node_bmask_t gen_clipped_bmask(int llx, int lly, int urx, int ury) const;
+
     };
 
 
@@ -157,6 +174,12 @@ private:
      * region covered by the root node
      */
     void do_insert(const Tile & t);
+
+    /*
+     * returns the depth of the tree (1 if only a leaf, 2 if one parent with
+     * leaf children, etc.)
+     */
+    uint8_t get_tree_depth() const;
 
     void print_node(const NodeBase & node) const;
 
@@ -187,18 +210,33 @@ public:
         friend class TileTree;
     private:
 
+        struct stack_node {
+            NodeBase * node;
+            node_bmask_t bmask;
+        };
+
         TileTree & owner;
 
-        // current region we are searching through to find nodes in the given
-        // range
-        NodeBase * cur_region;
+        /*
+         * a stack of the nodes we are searching through, with the root at the
+         * bottom and leaves at the top
+         */
+        stack_node * region_stack;
 
         int llx, lly, urx, ury;
         int cur_idx;
 
+        /*
+         * bitmask for cur_region's children, indicating which have yet to be
+         * visited
+         */
+        int reg_bitmask;
+
         iterator(TileTree & owner, int llx, int lly, int urx, int ury);
 
     public:
+
+        ~iterator();
 
         const Tile & operator*() const;
 

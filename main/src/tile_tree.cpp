@@ -59,7 +59,7 @@ uint32_t TileTree::NodeBase::get_idx(int x_idx, int y_idx) {
 }
 
 
-uint32_t TileTree::NodeBase::get_tile_idx(int tile_x, int tile_y) {
+uint32_t TileTree::NodeBase::get_tile_idx(int tile_x, int tile_y) const {
     int x_idx, y_idx;
     tile_to_grid_coords(tile_x, tile_y, x_idx, y_idx);
     return get_idx(x_idx, y_idx);
@@ -67,7 +67,7 @@ uint32_t TileTree::NodeBase::get_tile_idx(int tile_x, int tile_y) {
 
 
 void TileTree::NodeBase::tile_to_grid_coords(int tile_x, int tile_y,
-        int & x_idx, int & y_idx) {
+        int & x_idx, int & y_idx) const {
     int dx = tile_x - this->x;
     int dy = tile_y - this->y;
 
@@ -207,6 +207,48 @@ bool TileTree::Node<Tile>::is_leaf() const {
 }
 
 
+template<typename Child_t>
+node_bmask_t TileTree::Node<Child_t>::gen_clipped_bmask(int llx, int lly,
+        int urx, int ury) const {
+
+    int dllx, dlly, durx, dury;
+
+    tile_to_grid_coords(llx, lly, dllx, dlly);
+
+    // round up the upper right coordinates to the tiles just beyond what
+    // contains (urx, ury)
+    tile_to_grid_coords(urx - 1, ury - 1, durx, dury);
+    urx++;
+    ury++;
+
+    // if < 0, set to 0, otherwise keep the same
+    dllx &= ~(dllx >> 31);
+    dlly &= ~(dlly >> 31);
+    durx &= ~(durx >> 31);
+    dury &= ~(dury >> 31);
+
+    // if > 8, set to 8, otherwise keep the same
+    dllx = (dllx > children_dim) ? children_dim : dllx;
+    dlly = (dlly > children_dim) ? children_dim : dlly;
+    durx = (durx > children_dim) ? children_dim : durx;
+    dury = (dury > children_dim) ? children_dim : dury;
+
+    node_bmask_t x_bmask = (~((0x1lu << dllx) - 1)) & ((0x1lu << durx) - 1);
+    node_bmask_t y_bmask = (~((0x1lu << dlly) - 1)) & ((0x1lu << dury) - 1);
+
+    // splay y_bmask (max 0xff bits) evenly across the 64-bit number
+    y_bmask = (y_bmask | (y_bmask << 28)) & 0x0000000f0000000flu;
+    y_bmask = (y_bmask | (y_bmask << 14)) & 0x0003000300030003lu;
+    y_bmask = (y_bmask | (y_bmask <<  7)) & 0x0101010101010101lu;
+
+    // combine x and y bitmasks, for each set bit in the y bitvector, place a
+    // copy of the x bitvector in the corresponding byte
+    node_bmask_t clip = x_bmask * y_bmask;
+
+    return clip & this->occ_b;
+}
+
+
 TileTree::NodeBase * TileTree::find_parent_of(int tile_x, int tile_y) {
     NodeBase * node = this->root;
 
@@ -293,6 +335,11 @@ void TileTree::do_insert(const Tile & t) {
 }
 
 
+uint8_t TileTree::get_tree_depth() const {
+    return root->get_node_level() + 1;
+}
+
+
 void TileTree::print_node(const NodeBase & node) const {
     int level = root->node_level - node.node_level;
     printf("%*sNode (%p) (%d, %d), %dx%d\n", level, "", &node, node.x, node.y,
@@ -349,6 +396,17 @@ TileTree::iterator::iterator(TileTree & owner, int llx, int lly, int urx, int ur
         owner(owner), llx(llx), lly(lly), urx(urx), ury(ury) {
 
     cur_region = owner.find_parent_of(llx, lly);
+
+    uint8_t tree_depth = owner.get_tree_depth();
+    region_stack = new stack_node[tree_depth];
+
+    region_stack[tree_depth - 1];
+    // TODO initialize nodes in stack
+}
+
+
+TileTree::iterator::~iterator() {
+    delete [] region_stack;
 }
 
 
