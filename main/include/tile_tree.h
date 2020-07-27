@@ -32,6 +32,9 @@ private:
         // height of this Node, in tiles
         uint8_t node_level;
 
+        // bitmask of occupied chunks
+        node_bmask_t occ_b;
+
         NodeBase(int x, int y, uint8_t level);
         virtual ~NodeBase();
 
@@ -77,6 +80,15 @@ private:
         NodeBase * find_child_containing(int tile_x, int tile_y);
 
         /*
+         * given the bounds of a rectangular region, returns a bitmask
+         * corresponding to the set of children of this node which lie at
+         * least partially in the region
+         *
+         * the upper bounds of the rectangular region are non-inclusive
+         */
+        node_bmask_t gen_clipped_bmask(int llx, int lly, int urx, int ury) const;
+
+        /*
          * creates a parent node for the node, with the correct template of
          * Node
          *
@@ -101,15 +113,6 @@ private:
          */
         virtual bool is_leaf() const = 0;
 
-        /*
-         * given the bounds of a rectangular region, returns a bitmask
-         * corresponding to the set of children of this node which lie at
-         * least partially in the region
-         *
-         * the upper bounds of the rectangular region are non-inclusive
-         */
-        virtual node_bmask_t gen_clipped_bmask(int llx, int lly, int urx, int ury) const = 0;
-
     };
 
     template<typename Child_t>
@@ -117,8 +120,6 @@ private:
     public:
 
         Child_t children[branch_factor];
-        // bitmask of occupied chunks
-        node_bmask_t occ_b;
 
         Node(int x, int y, uint8_t level);
         virtual ~Node();
@@ -150,8 +151,6 @@ private:
         
         virtual bool is_leaf() const;
 
-        virtual node_bmask_t gen_clipped_bmask(int llx, int lly, int urx, int ury) const;
-
     };
 
 
@@ -180,6 +179,7 @@ private:
      * leaf children, etc.)
      */
     uint8_t get_tree_depth() const;
+
 
     void print_node(const NodeBase & node) const;
 
@@ -233,6 +233,51 @@ public:
         int reg_bitmask;
 
         iterator(TileTree & owner, int llx, int lly, int urx, int ury);
+
+
+        /*
+         * returns the index of the next child to iterate through, updating the
+         * bmask of node accordingly
+         */
+        uint8_t _get_next_idx(stack_node & node);
+
+        /*
+         * finds the next child of node and returns it, if there is one,
+         * otherwise returning nullptr
+         *
+         * node must not correspond to a leaf node
+         */
+        NodeBase * get_next_child(stack_node & node);
+
+        /*
+         * finds the next tile in node which has not yet been iterated through
+         * and returns it if there is one, otherwise returning nullptr
+         *
+         * node must correspond to a leaf node
+         */
+        Tile * get_next_tile(stack_node & node);
+
+
+        /*
+         * adds the given node with given clipped mask to the stack, returning
+         * a reference to the added stack node (stack position is inferred from
+         * the node's node_level)
+         */
+        stack_node & add_to_stack(NodeBase & node, node_bmask_t bmask);
+
+
+        /*
+         * recursive-only calls of find_next
+         */
+        int _find_next(NodeBase & node);
+
+        /*
+         * recursively finds the next leaf node to be iterated over, returning
+         * 1 if one could be found, 0 otherwise (calls _find_next, not itself)
+         *
+         * populates the node stack if a next leaf is found
+         */
+        int find_next(stack_node & node);
 
     public:
 

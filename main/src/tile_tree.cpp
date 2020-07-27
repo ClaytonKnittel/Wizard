@@ -10,7 +10,7 @@
 
 
 TileTree::NodeBase::NodeBase(int x, int y, uint8_t level) :
-    parent(nullptr), x(x), y(y), node_level(level) {
+    parent(nullptr), x(x), y(y), node_level(level), occ_b(0) {
 
 }
 
@@ -94,9 +94,50 @@ TileTree::NodeBase * TileTree::NodeBase::find_child_containing(int tile_x, int t
 }
 
 
+node_bmask_t TileTree::NodeBase::gen_clipped_bmask(int llx, int lly,
+        int urx, int ury) const {
+
+    int dllx, dlly, durx, dury;
+
+    tile_to_grid_coords(llx, lly, dllx, dlly);
+
+    // round up the upper right coordinates to the tiles just beyond what
+    // contains (urx, ury)
+    tile_to_grid_coords(urx - 1, ury - 1, durx, dury);
+    urx++;
+    ury++;
+
+    // if < 0, set to 0, otherwise keep the same
+    dllx &= ~(dllx >> 31);
+    dlly &= ~(dlly >> 31);
+    durx &= ~(durx >> 31);
+    dury &= ~(dury >> 31);
+
+    // if > 8, set to 8, otherwise keep the same
+    dllx = (dllx > children_dim) ? children_dim : dllx;
+    dlly = (dlly > children_dim) ? children_dim : dlly;
+    durx = (durx > children_dim) ? children_dim : durx;
+    dury = (dury > children_dim) ? children_dim : dury;
+
+    node_bmask_t x_bmask = (~((0x1lu << dllx) - 1)) & ((0x1lu << durx) - 1);
+    node_bmask_t y_bmask = (~((0x1lu << dlly) - 1)) & ((0x1lu << dury) - 1);
+
+    // splay y_bmask (max 0xff bits) evenly across the 64-bit number
+    y_bmask = (y_bmask | (y_bmask << 28)) & 0x0000000f0000000flu;
+    y_bmask = (y_bmask | (y_bmask << 14)) & 0x0003000300030003lu;
+    y_bmask = (y_bmask | (y_bmask <<  7)) & 0x0101010101010101lu;
+
+    // combine x and y bitmasks, for each set bit in the y bitvector, place a
+    // copy of the x bitvector in the corresponding byte
+    node_bmask_t clip = x_bmask * y_bmask;
+
+    return clip & this->occ_b;
+}
+
+
 template<typename Child_t>
 TileTree::Node<Child_t>::Node(int x, int y, uint8_t level) :
-    NodeBase(x, y, level), children{}, occ_b(0) {}
+    NodeBase(x, y, level), children{} {}
 
 
 template<typename Child_t>
@@ -204,48 +245,6 @@ bool TileTree::Node<Child_t>::is_leaf() const {
 template<>
 bool TileTree::Node<Tile>::is_leaf() const {
     return true;
-}
-
-
-template<typename Child_t>
-node_bmask_t TileTree::Node<Child_t>::gen_clipped_bmask(int llx, int lly,
-        int urx, int ury) const {
-
-    int dllx, dlly, durx, dury;
-
-    tile_to_grid_coords(llx, lly, dllx, dlly);
-
-    // round up the upper right coordinates to the tiles just beyond what
-    // contains (urx, ury)
-    tile_to_grid_coords(urx - 1, ury - 1, durx, dury);
-    urx++;
-    ury++;
-
-    // if < 0, set to 0, otherwise keep the same
-    dllx &= ~(dllx >> 31);
-    dlly &= ~(dlly >> 31);
-    durx &= ~(durx >> 31);
-    dury &= ~(dury >> 31);
-
-    // if > 8, set to 8, otherwise keep the same
-    dllx = (dllx > children_dim) ? children_dim : dllx;
-    dlly = (dlly > children_dim) ? children_dim : dlly;
-    durx = (durx > children_dim) ? children_dim : durx;
-    dury = (dury > children_dim) ? children_dim : dury;
-
-    node_bmask_t x_bmask = (~((0x1lu << dllx) - 1)) & ((0x1lu << durx) - 1);
-    node_bmask_t y_bmask = (~((0x1lu << dlly) - 1)) & ((0x1lu << dury) - 1);
-
-    // splay y_bmask (max 0xff bits) evenly across the 64-bit number
-    y_bmask = (y_bmask | (y_bmask << 28)) & 0x0000000f0000000flu;
-    y_bmask = (y_bmask | (y_bmask << 14)) & 0x0003000300030003lu;
-    y_bmask = (y_bmask | (y_bmask <<  7)) & 0x0101010101010101lu;
-
-    // combine x and y bitmasks, for each set bit in the y bitvector, place a
-    // copy of the x bitvector in the corresponding byte
-    node_bmask_t clip = x_bmask * y_bmask;
-
-    return clip & this->occ_b;
 }
 
 
@@ -395,13 +394,123 @@ void TileTree::insert_tile(const Tile & t) {
 TileTree::iterator::iterator(TileTree & owner, int llx, int lly, int urx, int ury) :
         owner(owner), llx(llx), lly(lly), urx(urx), ury(ury) {
 
-    cur_region = owner.find_parent_of(llx, lly);
+    //cur_region = owner.find_parent_of(llx, lly);
 
     uint8_t tree_depth = owner.get_tree_depth();
     region_stack = new stack_node[tree_depth];
 
-    region_stack[tree_depth - 1];
+    //region_stack[tree_depth - 1];
     // TODO initialize nodes in stack
+}
+
+
+uint8_t TileTree::iterator::_get_next_idx(stack_node & s_node) {
+    node_bmask_t search_mask;
+    uint8_t next_idx;
+
+    // find index of next unvisited child
+    next_idx = tzcnt64(s_node.bmask);
+
+    // mask off that child, which we are about to visit
+    search_mask = (1LU << next_idx);
+    s_node.bmask &= ~search_mask;
+
+    return next_idx;
+}
+
+
+TileTree::NodeBase * TileTree::iterator::get_next_child(
+        TileTree::iterator::stack_node & s_node) {
+
+    Node<NodeBase *> * node;
+    uint8_t next_idx;
+
+    // node must not be a leaf;
+    node = dynamic_cast<Node<NodeBase *> *>(s_node.node);
+    assert(node != nullptr);
+
+    if (s_node.bmask == 0) {
+        // no children left
+        return nullptr;
+    }
+
+    next_idx = _get_next_idx(s_node);
+
+    return *node->get_child_idx(next_idx);
+}
+
+Tile * TileTree::iterator::get_next_tile(
+        TileTree::iterator::stack_node & s_node) {
+
+    Node<Tile> * leaf;
+    uint8_t next_idx;
+
+    // node must be a leaf;
+    leaf = dynamic_cast<Node<Tile> *>(s_node.node);
+    assert(leaf != nullptr);
+
+    if (s_node.bmask == 0) {
+        // no children left
+        return nullptr;
+    }
+
+    next_idx = _get_next_idx(s_node);
+
+    return leaf->get_child_idx(next_idx);
+}
+
+
+TileTree::iterator::stack_node & TileTree::iterator::add_to_stack(
+        TileTree::NodeBase & node, node_bmask_t bmask) {
+    uint8_t stack_idx = node.get_node_level();
+    stack_node & s_node = this->region_stack[stack_idx];
+
+    s_node.node  = &node;
+    s_node.bmask = bmask;
+    return s_node;
+}
+
+
+int TileTree::iterator::_find_next(NodeBase & node) {
+    NodeBase * next_child;
+
+    node_bmask_t bmask = node.gen_clipped_bmask(llx, lly, urx, ury);
+    if (bmask == 0) {
+        // no children within the bounds of iteration, so skip
+        return 0;
+    }
+
+    stack_node & s_node = add_to_stack(node, bmask);
+
+    // if leaf nodes have any children in bounds, we must iterate through them
+    // regardless, so we can return success immediately
+    if (node.is_leaf()) {
+        return 1;
+    }
+
+    // for non-leaf nodes, we have to check to see if their children contain
+    // any nodes in bounds
+    while ((next_child = get_next_child(s_node)) != nullptr) {
+        if (_find_next(*next_child)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+int TileTree::iterator::find_next(stack_node & s_node) {
+    NodeBase * next_child;
+
+    assert(!s_node.node->is_leaf());
+
+    while ((next_child = get_next_child(s_node)) != nullptr) {
+        if (_find_next(*next_child)) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 

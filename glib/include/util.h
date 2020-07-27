@@ -24,6 +24,16 @@ static float int_to_float(uint32_t i) {
 }
 
 
+/*
+ * trailing zero count inline assembly instruction
+ */
+static uint8_t tzcnt64(uint64_t num) {
+    uint8_t loc;
+    __asm__("tzcnt %1, %0" : "=r" (loc) : "rm" (num));
+    return loc;
+}
+
+
 #define P_FILE_LINE P_LGREEN __FILE__ P_DEFAULT ":" P_LCYAN "%d" P_DEFAULT
 
 #define WIZARD_ASSERT(expr) \
