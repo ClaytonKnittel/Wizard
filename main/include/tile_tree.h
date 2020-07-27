@@ -220,19 +220,44 @@ public:
         /*
          * a stack of the nodes we are searching through, with the root at the
          * bottom and leaves at the top
+         *
+         * set to nullptr when the iteration is complete
          */
         stack_node * region_stack;
 
         int llx, lly, urx, ury;
+
+        /*
+         * cached index of the current tile the iterator is on in the top
+         * node's children array in region_stack
+         */
         int cur_idx;
 
         /*
-         * bitmask for cur_region's children, indicating which have yet to be
-         * visited
+         * cached depth of owner, for easy lookup
          */
-        int reg_bitmask;
+        int tree_depth;
 
+        /*
+         * constructs an iterator over the given rectangular region (urx and ury
+         * give exclusive upper bounds)
+         */
         iterator(TileTree & owner, int llx, int lly, int urx, int ury);
+        /*
+         * constructs an end-iterator
+         */
+        iterator(TileTree & owner);
+
+        /*
+         * returns true if this iterator has nothing left to iterate through
+         */
+        bool is_end() const;
+
+        /*
+         * marks an iterator as the end, to be called when ++ is called after
+         * all tiles have been iterated over
+         */
+        void make_end();
 
 
         /*
@@ -250,30 +275,23 @@ public:
         NodeBase * get_next_child(stack_node & node);
 
         /*
-         * finds the next tile in node which has not yet been iterated through
-         * and returns it if there is one, otherwise returning nullptr
+         * iterates to the next tile in node which has not yet been iterated
+         * through and returns 1 if there is one, otherwise returning 0
          *
          * node must correspond to a leaf node
          */
-        Tile * get_next_tile(stack_node & node);
+        int to_next_tile(stack_node & node);
 
 
         /*
-         * adds the given node with given clipped mask to the stack, returning
-         * a reference to the added stack node (stack position is inferred from
-         * the node's node_level)
+         * creates a node_stack node for the given node and recursively calls
+         * find_next if node is not a leaf
          */
-        stack_node & add_to_stack(NodeBase & node, node_bmask_t bmask);
-
-
-        /*
-         * recursive-only calls of find_next
-         */
-        int _find_next(NodeBase & node);
+        int add_to_stack(NodeBase & node);
 
         /*
          * recursively finds the next leaf node to be iterated over, returning
-         * 1 if one could be found, 0 otherwise (calls _find_next, not itself)
+         * 1 if one could be found, 0 otherwise (calls _find_next)
          *
          * populates the node stack if a next leaf is found
          */
@@ -286,6 +304,8 @@ public:
         const Tile & operator*() const;
 
         iterator & operator++();
+
+        bool operator==(const iterator & other) const;
 
     };
 

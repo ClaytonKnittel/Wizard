@@ -54,6 +54,11 @@ int TileTree::NodeBase::get_h() const {
 }
 
 
+uint8_t TileTree::NodeBase::get_node_level() const {
+    return this->node_level;
+}
+
+
 uint32_t TileTree::NodeBase::get_idx(int x_idx, int y_idx) {
     return y_idx * children_dim + x_idx;
 }
@@ -392,15 +397,31 @@ void TileTree::insert_tile(const Tile & t) {
 
 
 TileTree::iterator::iterator(TileTree & owner, int llx, int lly, int urx, int ury) :
-        owner(owner), llx(llx), lly(lly), urx(urx), ury(ury) {
+        owner(owner), llx(llx), lly(lly), urx(urx), ury(ury),
+        tree_depth(owner.get_tree_depth()) {
 
-    //cur_region = owner.find_parent_of(llx, lly);
+    region_stack = new stack_node[this->tree_depth];
 
-    uint8_t tree_depth = owner.get_tree_depth();
-    region_stack = new stack_node[tree_depth];
+    if (!add_to_stack(*owner.root)) {
+        make_end();
+    }
+}
 
-    //region_stack[tree_depth - 1];
-    // TODO initialize nodes in stack
+TileTree::iterator::iterator(TileTree & owner) : owner(owner),
+        region_stack(nullptr) {
+}
+
+
+bool TileTree::iterator::is_end() const {
+    return region_stack == nullptr;
+}
+
+
+void TileTree::iterator::make_end() {
+    if (region_stack != nullptr) {
+        delete [] region_stack;
+        region_stack = nullptr;
+    }
 }
 
 
@@ -439,7 +460,8 @@ TileTree::NodeBase * TileTree::iterator::get_next_child(
     return *node->get_child_idx(next_idx);
 }
 
-Tile * TileTree::iterator::get_next_tile(
+
+int TileTree::iterator::to_next_tile(
         TileTree::iterator::stack_node & s_node) {
 
     Node<Tile> * leaf;
@@ -451,28 +473,20 @@ Tile * TileTree::iterator::get_next_tile(
 
     if (s_node.bmask == 0) {
         // no children left
-        return nullptr;
+        return 0;
     }
 
     next_idx = _get_next_idx(s_node);
 
-    return leaf->get_child_idx(next_idx);
+    // cache next_idx for lookup when dereference operator is called
+    cur_idx = next_idx;
+
+    return 1;
 }
 
 
-TileTree::iterator::stack_node & TileTree::iterator::add_to_stack(
-        TileTree::NodeBase & node, node_bmask_t bmask) {
-    uint8_t stack_idx = node.get_node_level();
-    stack_node & s_node = this->region_stack[stack_idx];
 
-    s_node.node  = &node;
-    s_node.bmask = bmask;
-    return s_node;
-}
-
-
-int TileTree::iterator::_find_next(NodeBase & node) {
-    NodeBase * next_child;
+int TileTree::iterator::add_to_stack(NodeBase & node) {
 
     node_bmask_t bmask = node.gen_clipped_bmask(llx, lly, urx, ury);
     if (bmask == 0) {
@@ -480,7 +494,12 @@ int TileTree::iterator::_find_next(NodeBase & node) {
         return 0;
     }
 
-    stack_node & s_node = add_to_stack(node, bmask);
+    // add the node to the stack
+    uint8_t stack_idx = node.get_node_level();
+    stack_node & s_node = this->region_stack[stack_idx];
+
+    s_node.node  = &node;
+    s_node.bmask = bmask;
 
     // if leaf nodes have any children in bounds, we must iterate through them
     // regardless, so we can return success immediately
@@ -490,22 +509,20 @@ int TileTree::iterator::_find_next(NodeBase & node) {
 
     // for non-leaf nodes, we have to check to see if their children contain
     // any nodes in bounds
-    while ((next_child = get_next_child(s_node)) != nullptr) {
-        if (_find_next(*next_child)) {
-            return 1;
-        }
-    }
-    return 0;
+    return find_next(s_node);
 }
 
 
 int TileTree::iterator::find_next(stack_node & s_node) {
     NodeBase * next_child;
 
+    // this method is only for non-leaf nodes
     assert(!s_node.node->is_leaf());
 
+    // check to see if any more children of this node have tiles to iterate
+    // through
     while ((next_child = get_next_child(s_node)) != nullptr) {
-        if (_find_next(*next_child)) {
+        if (add_to_stack(*next_child)) {
             return 1;
         }
     }
@@ -522,12 +539,12 @@ TileTree::iterator::~iterator() {
 const Tile & TileTree::iterator::operator*() const {
     Node<Tile> * n;
 
-    if (cur_region == nullptr) {
+    if (is_end()) {
         throw new std::runtime_error("Dereferenced TileTree iterator beyond the "
                 "valid range of iteration");
     }
 
-    n = dynamic_cast<Node<Tile> *>(cur_region);
+    n = dynamic_cast<Node<Tile> *>(region_stack[0].node);
     assert(n != nullptr);
 
     return *n->get_child_idx(cur_idx);
@@ -535,7 +552,44 @@ const Tile & TileTree::iterator::operator*() const {
 
 
 TileTree::iterator & TileTree::iterator::operator++() {
+
+    if (to_next_tile(region_stack[0])) {
+        return *this;
+    }
+
+    for (uint8_t idx = 1; idx < this->tree_depth; idx++) {
+        if (find_next(region_stack[idx])) {
+            return *this;
+        }
+    }
+    make_end();
     return *this;
+}
+
+
+bool TileTree::iterator::operator==(const iterator & other) const {
+    if (&this->owner != &other.owner) {
+        // iterators are not the same if they belong to different trees
+        return false;
+    }
+
+    if (this->is_end() && other.is_end()) {
+        // if both are end iterators, then they are equal
+        return true;
+    }
+
+    if (this->tree_depth != other.tree_depth) {
+        // at least one of these iterators must be invalid
+        throw new std::runtime_error("Comparison of at least one invalid "
+                "TileTree iterator results in undefined/potentially dangerous "
+                "behavior");
+    }
+
+    int same_stack = __builtin_memcmp(this->region_stack, other.region_stack,
+            this->tree_depth * sizeof(stack_node));
+
+    return same_stack && llx == other.llx && lly == other.lly &&
+        urx == other.urx && ury == other.ury;
 }
 
 
@@ -556,17 +610,7 @@ TileTree::iterator TileTree::begin() {
 
 
 TileTree::iterator TileTree::end() {
-    if (this->root == nullptr) {
-        return iterator(*this, 0, 0, 0, 0);
-    }
-    else {
-        int x, y, w, h;
-        x = root->x;
-        y = root->y;
-        w = root->get_w();
-        h = root->get_h();
-        return iterator(*this, x + w, y + h, x + w, y + h);
-    }
+    return iterator(*this);
 }
 
 
