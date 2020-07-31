@@ -12,46 +12,58 @@ template<typename I>
 class bstream {
 private:
 
-    I base;
+    I * base;
+    bool do_delete;
 
 public:
 
-    bstream() : base() {}
+    bstream() : do_delete(true) {
+        base = new I();
+    }
+
+    bstream(I & base) : base(&base), do_delete(false) {}
+
+    ~bstream() {
+        if (do_delete && base != nullptr) {
+            delete base;
+            base = nullptr;
+        }
+    }
 
     void open(const std::string & loc, int flags) {
-        base.open(loc, flags);
+        base->open(loc, flags);
     }
 
     bool is_open() {
-        return base.is_open();
+        return base->is_open();
     }
 
     void close() {
-        base.close();
+        base->close();
     }
 
     std::string str() {
-        return base.str();
+        return base->str();
     }
 
     template<typename T>
     void read(T & t) {
-        base.read(reinterpret_cast<char *>(&t), sizeof(T));
+        base->read(reinterpret_cast<char *>(&t), sizeof(T));
     }
 
     template<typename T>
     void write(const T & t) {
-        base.write(reinterpret_cast<const char *>(&t),
+        base->write(reinterpret_cast<const char *>(&t),
                 sizeof(T));
     }
 
     template<>
     void write(const std::string & s) {
-        base.write(s.c_str(), s.size());
+        base->write(s.c_str(), s.size());
     }
 
     void write(const void * mem, size_t n_bytes) {
-        base.write(mem, n_bytes);
+        base->write(mem, n_bytes);
     }
 
     template<typename T>

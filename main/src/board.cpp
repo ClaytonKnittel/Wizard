@@ -17,15 +17,11 @@
 
 void Board::make_generic() {
 
-#define W 1000
-#define H 500
+#define W 100
+#define H 100
 
     texs.add_texture("main/img/test.bmp", 2, 2);
-    //texs.emplace_back("main/img/test.bmp", 2, 2);
     texs.add_texture("main/img/badgrass.bmp", 1, 1);
-    
-    printf("Before:\n");
-    tiles.print_tree();
 
     for (int i = 0; i < W * H; i++) {
         if (i % 5 == 4) {
@@ -46,8 +42,7 @@ void Board::make_generic() {
         }
     }
 
-    printf("\nAfter:\n");
-    //tiles.print_tree_condensed();
+    tiles.print_tree_condensed();
 }
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {

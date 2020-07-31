@@ -2,13 +2,14 @@
 
 #include <stdint.h>
 
+#include <file_writeable.h>
 #include <tile.h>
 
 
 typedef uint64_t node_bmask_t;
 
 
-class TileTree {
+class TileTree : public FileWriteable {
 private:
 
     class NodeBase {
