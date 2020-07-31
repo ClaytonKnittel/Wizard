@@ -14,6 +14,19 @@ Camera::~Camera() {
 }
 
 
+float Camera::get_x() const {
+    return this->x;
+}
+
+float Camera::get_y() const {
+    return this->y;
+}
+
+float Camera::get_scale() const {
+    return this->scale;
+}
+
+
 void Camera::screen_to_int(double &x, double &y) const {
     x *= scale;
     y *= scale;

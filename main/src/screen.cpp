@@ -32,6 +32,14 @@ float Screen::inv_aspect_ratio() const {
 }
 
 
+void Screen::get_screen_bounds(float &llx, float &lly, float &urx, float &ury) const {
+    llx = cam.get_x() - cam.get_scale();
+    lly = cam.get_y() - aspect_ratio() * cam.get_scale();
+    urx = cam.get_x() + cam.get_scale();
+    ury = cam.get_y() + aspect_ratio() * cam.get_scale();
+}
+
+
 void Screen::pix_to_int(double &x, double &y) const {
     x = x * 2 / width - 1;
     y = (-y * 2 / height + 1) * aspect_ratio();

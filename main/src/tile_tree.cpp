@@ -12,6 +12,7 @@
 TileTree::NodeBase::NodeBase(int x, int y, uint8_t level) :
     parent(nullptr), x(x), y(y), node_level(level), occ_b(0) {
 
+    assert(level < 20);
 }
 
 TileTree::NodeBase::~NodeBase() {
@@ -56,6 +57,12 @@ int TileTree::NodeBase::get_h() const {
 
 uint8_t TileTree::NodeBase::get_node_level() const {
     return this->node_level;
+}
+
+
+void TileTree::NodeBase::mark_occupied(int x_idx, int y_idx) {
+    int idx = x_idx + y_idx * children_dim;
+    this->occ_b |= (1LU << idx);
 }
 
 
@@ -177,6 +184,8 @@ TileTree::NodeBase * & TileTree::Node<TileTree::NodeBase *>::try_make_child(
         child = new Node<NodeBase *>(node_x, node_y, this->node_level - 1);
     }
 
+    mark_occupied(x_idx, y_idx);
+
     return child;
 }
 
@@ -185,6 +194,7 @@ Tile & TileTree::Node<Tile>::try_make_child(int x_idx, int y_idx) {
     Tile & t = this->children[get_idx(x_idx, y_idx)];
     t.x = this->x + x_idx;
     t.y = this->y + y_idx;
+    mark_occupied(x_idx, y_idx);
     return t;
 }
 
@@ -221,6 +231,7 @@ void TileTree::Node<Tile>::insert_tile(const Tile & t) {
 template<typename Child_t>
 void TileTree::Node<Child_t>::set_child(int x_idx, int y_idx, Child_t && child) {
     children[get_idx(x_idx, y_idx)] = std::forward<Child_t>(child);
+    mark_occupied(x_idx, y_idx);
 }
 
 
@@ -295,6 +306,8 @@ void TileTree::prepare_insert(int x, int y) {
         // divide by width and height, rounding towards minus infinity
         dx = (x - root->x) >> logw;
         dy = (y - root->y) >> logh;
+
+        printf("%d %d (%d)\n", dx, dy, NodeBase::children_dim);
 
         if (dx == 0 && dy == 0) {
             // within the boundaries of the current root
@@ -532,7 +545,9 @@ int TileTree::iterator::find_next(stack_node & s_node) {
 
 
 TileTree::iterator::~iterator() {
-    delete [] region_stack;
+    if (region_stack != nullptr) {
+        delete [] region_stack;
+    }
 }
 
 
@@ -590,6 +605,11 @@ bool TileTree::iterator::operator==(const iterator & other) const {
 
     return same_stack && llx == other.llx && lly == other.lly &&
         urx == other.urx && ury == other.ury;
+}
+
+
+bool TileTree::iterator::operator!=(const iterator & other) const {
+    return !(*this == other);
 }
 
 

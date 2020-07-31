@@ -30,6 +30,8 @@ public:
 
     float inv_aspect_ratio() const;
 
+    void get_screen_bounds(float &llx, float &lly, float &urx, float &ury) const;
+
     /*
      * transforms pixel coordinates to internal game coordinates
      */

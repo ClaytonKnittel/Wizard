@@ -16,11 +16,10 @@ private:
 
         static constexpr uint32_t log_children_dim = 3;
 
-        static constexpr uint32_t children_dim = (1U << log_children_dim);
+        static constexpr int32_t children_dim = (1U << log_children_dim);
         // each node has at most 64 children (8x8 grid)
-        static constexpr uint32_t branch_factor = children_dim * children_dim;
+        static constexpr int32_t branch_factor = children_dim * children_dim;
 
-        // add virtual function to do traversing
 
         NodeBase * parent;
 
@@ -49,6 +48,11 @@ private:
         int get_h() const;
 
         uint8_t get_node_level() const;
+
+        /*
+         * mark the child slot at the given index as occupied
+         */
+        void mark_occupied(int x_idx, int y_idx);
 
         /*
          * gives the mapping from 2-dimensional (x_idx, y_idx) coordinates in
@@ -306,6 +310,7 @@ public:
         iterator & operator++();
 
         bool operator==(const iterator & other) const;
+        bool operator!=(const iterator & other) const;
 
     };
 

@@ -193,10 +193,13 @@ void Board::add_tile(const Tile & t) {
     add_tile(t.x, t.y, t.texset, t.tex_idx);
 }
 
-std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury) const {
+std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury) {
 
     std::vector<Tile> in_range;
 
+    for (auto it = tiles.find_all(llx, lly, urx, ury); it != tiles.end(); ++it) {
+        in_range.push_back(*it);
+    }
     /*
     for (auto it = tiles.begin(); it != tiles.end(); it++) {
         const Tile &t = *it;
@@ -209,7 +212,7 @@ std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury
 }
 
 
-std::vector<Tile> Board::tiles_in_range(float llx, float lly, float urx, float ury) const {
+std::vector<Tile> Board::tiles_in_range(float llx, float lly, float urx, float ury) {
     int _llx, _lly, _urx, _ury;
     get_coords(llx, lly, _llx, _lly);
     get_coords(urx, ury, _urx, _ury);
@@ -240,7 +243,11 @@ void Board::set_preview(int x, int y, const TextureSet * ts, int tex_idx) {
 
 
 void Board::render(const Screen & screen) {
-    //draw_tiles(screen, this->tiles);
+    float llx, lly, urx, ury;
+
+    screen.get_screen_bounds(llx, lly, urx, ury);
+    std::vector<Tile> tils = tiles_in_range(llx, lly, urx, ury);
+    draw_tiles(screen, tils);
 
     if (preview.texset != nullptr) {
         GLuint prev = gl_uniform_location(&prog, "preview");
