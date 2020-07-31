@@ -17,8 +17,8 @@
 
 void Board::make_generic() {
 
-#define W 12
-#define H 5
+#define W 1000
+#define H 500
 
     texs.add_texture("main/img/test.bmp", 2, 2);
     //texs.emplace_back("main/img/test.bmp", 2, 2);
@@ -47,7 +47,7 @@ void Board::make_generic() {
     }
 
     printf("\nAfter:\n");
-    tiles.print_tree();
+    //tiles.print_tree_condensed();
 }
 
 Board::Board(const std::string & file) : Entity(0, 0, .08f), rbuf(8000) {
@@ -200,13 +200,6 @@ std::vector<Tile> Board::tiles_in_index_range(int llx, int lly, int urx, int ury
     for (auto it = tiles.find_all(llx, lly, urx, ury); it != tiles.end(); ++it) {
         in_range.push_back(*it);
     }
-    /*
-    for (auto it = tiles.begin(); it != tiles.end(); it++) {
-        const Tile &t = *it;
-        if (t.x >= llx && t.x <= urx && t.y >= lly && t.y <= ury) {
-            in_range.push_back(t);
-        }
-    }*/
 
     return in_range;
 }
@@ -216,6 +209,7 @@ std::vector<Tile> Board::tiles_in_range(float llx, float lly, float urx, float u
     int _llx, _lly, _urx, _ury;
     get_coords(llx, lly, _llx, _lly);
     get_coords(urx, ury, _urx, _ury);
+    // exclusive upper bounds of region, so add 1 to upper bounds
     return tiles_in_index_range(_llx, _lly, _urx + 1, _ury + 1);
 }
 

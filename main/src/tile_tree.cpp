@@ -307,8 +307,6 @@ void TileTree::prepare_insert(int x, int y) {
         dx = (x - root->x) >> logw;
         dy = (y - root->y) >> logh;
 
-        printf("%d %d (%d)\n", dx, dy, NodeBase::children_dim);
-
         if (dx == 0 && dy == 0) {
             // within the boundaries of the current root
             break;
@@ -376,6 +374,25 @@ void TileTree::print_node(const NodeBase & node) const {
         for (int i = 0; i < NodeBase::branch_factor; i++) {
             if (n->children[i] != nullptr) {
                 print_node(*n->children[i]);
+            }
+        }
+    }
+}
+
+
+void TileTree::print_node_cond(const NodeBase & node) const {
+    int level = root->node_level - node.node_level;
+    printf("%*s(%d, %d) %dx%d\n", level, "", node.x, node.y, node.get_w(),
+            node.get_h());
+
+
+    const Node<Tile> * leaf = dynamic_cast<const Node<Tile> *>(&node);
+    if (leaf == nullptr) {
+        const Node<NodeBase *> * n = dynamic_cast<const Node<NodeBase *> *>(&node);
+        assert(n != nullptr);
+        for (int i = 0; i < NodeBase::branch_factor; i++) {
+            if (n->children[i] != nullptr) {
+                print_node_cond(*n->children[i]);
             }
         }
     }
@@ -655,4 +672,10 @@ void TileTree::print_tree() const {
     }
 }
 
+
+void TileTree::print_tree_condensed() const {
+    if (root != nullptr) {
+        print_node_cond(*root);
+    }
+}
 

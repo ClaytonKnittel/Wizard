@@ -29,6 +29,9 @@ static bool keys[6] = { false, false, false, false, false, false };
 #define SCROLL_SPEED .03f
 #define ZOOM_SPEED 1.1f
 
+static float speed_factor = 1.f;
+
+
 void mouse_click(gl_context * c, int button, int action, int mods) {
 
     if (button == GLFW_MOUSE_BUTTON_LEFT &&
@@ -187,6 +190,14 @@ void init_ctrl(Controller & c) {
         zoom_out.add_release_callback([=](void) -> void {
                 keys[5] = false;
                 });
+
+        Node & speed_up = root.add_child(GLFW_KEY_LEFT_SHIFT);
+        speed_up.make_terminal([=](void) -> void {
+                speed_factor = 5.f;
+                });
+        speed_up.add_release_callback([=](void) -> void {
+                speed_factor = 1.f;
+                });
     }
 }
 
@@ -225,16 +236,16 @@ void update(gl_context * c) {
     g_b->set_preview(tx, ty, cur_item.texset, cur_item.tex_idx);
 
     if (keys[0]) {
-        g_screen->get_cam().move(0, SCROLL_SPEED);
+        g_screen->get_cam().move(0, speed_factor * SCROLL_SPEED);
     }
     if (keys[1]) {
-        g_screen->get_cam().move(-SCROLL_SPEED, 0);
+        g_screen->get_cam().move(-speed_factor * SCROLL_SPEED, 0);
     }
     if (keys[2]) {
-        g_screen->get_cam().move(0, -SCROLL_SPEED);
+        g_screen->get_cam().move(0, -speed_factor * SCROLL_SPEED);
     }
     if (keys[3]) {
-        g_screen->get_cam().move(SCROLL_SPEED, 0);
+        g_screen->get_cam().move(speed_factor * SCROLL_SPEED, 0);
     }
     if (keys[4]) {
         g_screen->get_cam().zoom(1 / ZOOM_SPEED);

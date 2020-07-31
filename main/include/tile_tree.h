@@ -186,6 +186,7 @@ private:
 
 
     void print_node(const NodeBase & node) const;
+    void print_node_cond(const NodeBase & node) const;
 
 
     NodeBase * root;
@@ -329,6 +330,7 @@ public:
      * for debugging, prints the tree visually
      */
     void print_tree() const;
+    void print_tree_condensed() const;
 
 };
 
