@@ -116,8 +116,8 @@ node_bmask_t TileTree::NodeBase::gen_clipped_bmask(int llx, int lly,
     // round up the upper right coordinates to the tiles just beyond what
     // contains (urx, ury)
     tile_to_grid_coords(urx - 1, ury - 1, durx, dury);
-    urx++;
-    ury++;
+    durx++;
+    dury++;
 
     // if < 0, set to 0, otherwise keep the same
     dllx &= ~(dllx >> 31);
@@ -359,8 +359,8 @@ uint8_t TileTree::get_tree_depth() const {
 
 void TileTree::print_node(const NodeBase & node) const {
     int level = root->node_level - node.node_level;
-    printf("%*sNode (%p) (%d, %d), %dx%d\n", level, "", &node, node.x, node.y,
-            node.get_w(), node.get_h());
+    printf("%*sNode (%p) (%d, %d), %dx%d (occ_b: %016llx)\n", level, "", &node, node.x, node.y,
+            node.get_w(), node.get_h(), node.occ_b);
 
     const Node<Tile> * leaf = dynamic_cast<const Node<Tile> *>(&node);
     if (leaf != nullptr) {
@@ -421,7 +421,7 @@ TileTree::iterator::iterator(TileTree & owner, int llx, int lly, int urx, int ur
 }
 
 TileTree::iterator::iterator(TileTree & owner) : owner(owner),
-        region_stack(nullptr) {
+        region_stack(nullptr), tree_depth(owner.get_tree_depth()) {
 }
 
 
@@ -517,6 +517,7 @@ int TileTree::iterator::add_to_stack(NodeBase & node) {
     // if leaf nodes have any children in bounds, we must iterate through them
     // regardless, so we can return success immediately
     if (node.is_leaf()) {
+        to_next_tile(s_node);
         return 1;
     }
 
@@ -598,6 +599,11 @@ bool TileTree::iterator::operator==(const iterator & other) const {
         throw new std::runtime_error("Comparison of at least one invalid "
                 "TileTree iterator results in undefined/potentially dangerous "
                 "behavior");
+    }
+
+    if (this->is_end() || other.is_end()) {
+        // if only one is the end, they aren't the same
+        return false;
     }
 
     int same_stack = __builtin_memcmp(this->region_stack, other.region_stack,

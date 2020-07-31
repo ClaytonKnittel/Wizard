@@ -216,7 +216,7 @@ std::vector<Tile> Board::tiles_in_range(float llx, float lly, float urx, float u
     int _llx, _lly, _urx, _ury;
     get_coords(llx, lly, _llx, _lly);
     get_coords(urx, ury, _urx, _ury);
-    return tiles_in_index_range(_llx, _lly, _urx, _ury);
+    return tiles_in_index_range(_llx, _lly, _urx + 1, _ury + 1);
 }
 
 

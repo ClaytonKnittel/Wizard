@@ -123,7 +123,7 @@ private:
     class __attribute__((aligned(128))) Node : public NodeBase {
     public:
 
-        Child_t children[branch_factor];
+        Child_t children[NodeBase::branch_factor];
 
         Node(int x, int y, uint8_t level);
         virtual ~Node();
