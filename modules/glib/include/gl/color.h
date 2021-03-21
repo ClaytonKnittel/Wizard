@@ -12,7 +12,8 @@ typedef uint32_t color_t;
 
 
 #define gen_color(r, g, b, a) \
-    ((color_t) ((r) | (g << 8) | (b << 16) | (a << 24)))
+    ((color_t) (((color_t) (r)) | (((color_t) (g)) << 8) | \
+        (((color_t) (b)) << 16) | (((color_t) (a)) << 24)))
 
 
 static float color_r(color_t color) {

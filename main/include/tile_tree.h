@@ -9,7 +9,7 @@
 typedef uint64_t node_bmask_t;
 
 
-class TileTree : public FileWriteable {
+class TileTree /*: public FileWriteable*/ {
 private:
 
     class NodeBase {

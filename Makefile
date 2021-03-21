@@ -1,7 +1,7 @@
 include common.mk
 
 .PHONY: all
-all: dirs glib main progs
+all: dirs glib utils main progs
 
 .PHONY: dirs
 dirs:
@@ -10,19 +10,24 @@ dirs:
 
 .PHONY: progs
 progs:
-	@(make -C $(PROGDIR) BASE_DIR=${CURDIR} BDIR=$(BDIR) LDIR=$(LDIR))
+	(make -C $(PROGDIR) BASE_DIR=${CURDIR} BDIR=$(BDIR) LDIR=$(LDIR))
 
 .PHONY: main
 main:
-	@(make -C $(GAMEDIR) BASE_DIR=${CURDIR} LDIR=$(LDIR))
+	(make -C $(GAMEDIR) BASE_DIR=${CURDIR} LDIR=$(LDIR))
 
 .PHONY: glib
 glib:
-	@(make -C $(LIBDIR) BASE_DIR=${CURDIR} TDIR=$(TDIR) LDIR=$(LDIR))
+	(make -C $(GLIBDIR) BASE_DIR=${CURDIR} TDIR=$(TDIR) LDIR=$(LDIR))
+
+.PHONY: utils
+utils:
+	(make -C $(UTILSDIR) BASE_DIR=$(UTILSDIR) TDIR=$(TDIR) LIB_DIR=$(LDIR))
 
 .PHONY: clean
 clean:
-	(make clean -C $(LIBDIR))
+	(make clean -C $(GLIBDIR))
+	(make clean -C $(UTILSDIR))
 	(make clean -C $(GAMEDIR))
 	rm -rf $(BDIR)
 	rm -rf $(LDIR)

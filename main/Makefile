@@ -29,6 +29,5 @@ $(ODIR)/%.o: $(SDIR)/%.cpp
 
 .PHONY: clean
 clean:
-	find $(ODIR) -type f -name '*.[od]' -delete
 	rm -rf $(ODIR)
 

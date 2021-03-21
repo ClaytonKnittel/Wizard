@@ -4,7 +4,9 @@ AR=ar
 
 BASE_DIR=$(shell pwd)
 GAMEDIR=$(BASE_DIR)/main
-LIBDIR=$(BASE_DIR)/glib
+MODULES_DIR=$(BASE_DIR)/modules
+GLIBDIR=$(MODULES_DIR)/glib
+UTILSDIR=$(MODULES_DIR)/utils
 PROGDIR=$(BASE_DIR)/progs
 
 LDIR=$(BASE_DIR)/lib
@@ -13,11 +15,11 @@ BDIR=$(BASE_DIR)/bin
 # testing binary directory
 TDIR=$(BDIR)
 
-IFLAGS=-I$(GAMEDIR)/include -I$(LIBDIR)/include $(shell pkg-config --cflags freetype2)
+IFLAGS=-I$(GAMEDIR)/include -I$(GLIBDIR)/include -I$(UTILSDIR)/include $(shell pkg-config --cflags freetype2)
 LFLAGS=-L$(LDIR)
 
 #opengl libraries
-GLLIBS=-lglew.2.1 -lglfw.3.3 -framework OpenGL
+GLLIBS=-lglew.2.2 -lglfw.3.3 -framework OpenGL
 
 DEBUG=1
 
